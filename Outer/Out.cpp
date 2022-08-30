@@ -13,7 +13,7 @@ Outer::Outer(const std::string& out, const std::string& kinen, const std::string
 }
 
 Outer::Outer(const std::string& out) {
-    Out.open("output/calcs" + out);
+    Out.open("output/calcs/" + out, std::ios_base::app);
 }
 
 Outer::~Outer() {
