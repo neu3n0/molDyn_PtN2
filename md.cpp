@@ -3,7 +3,7 @@
 #include <chrono>
 #include <omp.h>
 
-const size_t MAXSTEPS = 100000;
+const size_t MAXSTEPS = 120000;
 
 int main(const int argc, char* argv[]) {
     Parser pars(argc, argv);
@@ -31,8 +31,9 @@ int main(const int argc, char* argv[]) {
     
     auto wholeStart = std::chrono::steady_clock::now();
 
-    size_t N = 1;
+    size_t N = 100;
     for (size_t i = 0; i < E_tr.size(); ++i) {
+        size_t countBadCalcs = 0;
         // std::cout << E_tr[i] << "  " << E_rot[i] << "  " << E_vib[i] << " " << alpha[i] << std::endl;
         std::vector<double> vel(3, 0);
         double eRot = 0, eVib = 0, eTr = 0;
@@ -40,38 +41,37 @@ int main(const int argc, char* argv[]) {
         auto confStart = std::chrono::steady_clock::now();
         Outer outT("out_" + std::to_string(i));
         Outer outS("start_inf_" + std::to_string(i));
-        // #pragma omp parallel for
-        size_t countCalcs = N;
         double badTime = 0;
+        #pragma omp parallel for
         for (size_t j = 0; j < N; ++j) {
             // std::cout << "----- N = " << j + 1 << " -----" << std::endl;
             Space* space = new Space();
             srand(time(nullptr));
             space->setConfig(pars.getCfgFile());
             space->init(pars.getInpFile());
-            if (!space->initFromParams(E_tr[i], E_rot[i], E_vib[i], alpha[i])) continue;
+            if (!space->initFromParams(E_tr[i], E_rot[i], E_vib[i], alpha[i])) {
+                delete space;
+                continue;
+            }
 
-            // need to debug
+            // need for debug
             std::vector<double> startInf = {
                 space->molsN2[0].atom[0]->coord[0], space->molsN2[0].atom[0]->coord[1], space->molsN2[0].atom[0]->coord[2],
                 space->molsN2[0].atom[1]->coord[0], space->molsN2[0].atom[1]->coord[1], space->molsN2[0].atom[1]->coord[2],
                 space->molsN2[0].atom[0]->vel[0], space->molsN2[0].atom[0]->vel[1], space->molsN2[0].atom[0]->vel[2], 
                 space->molsN2[0].atom[1]->vel[0], space->molsN2[0].atom[1]->vel[1], space->molsN2[0].atom[1]->vel[2]
             };
-            for (auto x : startInf) outS.Out << x << " ";
-            outS.Out << std::endl;
-
 
             size_t step = 0;
             auto start = std::chrono::steady_clock::now();
             space->vtkNum = 0;
 
             while (!space->MDStep() && step < MAXSTEPS) {
-                if (step % 100 == 0) {
-                    auto tmp = std::chrono::steady_clock::now();
-                    // std::cout << "step: " << step << "  |  " << static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(tmp - start).count()) / 1000 << " sec" << std::endl;
-                }
-                // if (step % 100 == 0) space->writeVTK(pars.getOutFile() + "_" + std::to_string(i) + "_" + std::to_string(j));
+                // if (step % 100 == 0) {
+                //     auto tmp = std::chrono::steady_clock::now();
+                //     std::cout << "step: " << step << "  |  " << static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(tmp - start).count()) / 1000 << " sec" << std::endl;
+                // }
+                // // if (step % 100 == 0) space->writeVTK(pars.getOutFile() + "_" + std::to_string(i) + "_" + std::to_string(j));
                 ++step;
             }
             // space->writeVTK(pars.getOutFile() + "_" + std::to_string(i) + "_" + std::to_string(j));
@@ -99,11 +99,17 @@ int main(const int argc, char* argv[]) {
                 eTr += eT;
                 steps += step;
                 saveInfo(outT, E_tr[i], E_rot[i], E_vib[i], alpha[i], vTmp, eT, eV, eR, 1, timeT, step);
+                for (auto x : startInf) outS.Out << x << " ";
+                    outS.Out << std::endl;
             }
             else { 
-                countCalcs--;
+                ++countBadCalcs;
+                if (countBadCalcs < 25) 
+                    --N;
                 badTime += timeT;
-                outT.Out << "BAD_CALC" << std::endl;
+                std::cout << "BAD_CALC: " << E_tr[i] << " " << E_rot[i] << " " << E_vib[i] << " " << alpha[i] << std::endl;
+                for (auto x : startInf) std::cout << x << " ";
+                std::cout << std::endl;
             }
             // std::cout << vTmp[0] << " " << vTmp[1] << " " << vTmp[2] 
             //     << "  |  E_Tr = " << eT << " E_rot = " << eR << " E_vib = " << eV << "  |  " << step << " " << timeT << std::endl;
@@ -112,7 +118,7 @@ int main(const int argc, char* argv[]) {
         
         auto tmp = std::chrono::steady_clock::now();
         double confTime = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(tmp - confStart).count()) / 1000;
-        saveInfo(out, E_tr[i], E_rot[i], E_vib[i], alpha[i], vel, eTr, eVib, eRot, countCalcs, confTime - badTime, steps);
+        saveInfo(out, E_tr[i], E_rot[i], E_vib[i], alpha[i], vel, eTr, eVib, eRot, N, confTime - badTime, steps);
         // std::cout << vel[0] / N << " " << vel[1] / N << " " << vel[2] / N 
         //         << "  |  E_tr = " << eTr / N << " E_rot = " << eRot / N << " E_vib = " << eVib / N 
         //             << "  |  " << steps << " " << confTime << std::endl;
@@ -120,7 +126,7 @@ int main(const int argc, char* argv[]) {
     }
 
     auto tmp = std::chrono::steady_clock::now();
-    // std::cout << "full duration of calculation: " << static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(tmp - wholeStart).count()) / 1000 << " sec" << std::endl;
+    std::cout << "full duration of calculation: " << static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(tmp - wholeStart).count()) / 1000 << " sec" << std::endl;
     
     return 0;
 }   

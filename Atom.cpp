@@ -73,7 +73,7 @@ void Atom::powerLJ(Atom* atProb, const double* shift, bool oneCell) {
     double potential = LJ_P(r, type, atProb->type);
     ljEn += potential;
     if (!oneCell)
-        atProb->ljEn -= potential;
+        atProb->ljEn += potential;
     for (size_t i = 0; i < 3; ++i) {
         power[i] += (coord[i] - atProb->coord[i] - shift[i]) / r * force;
         if (!oneCell)
@@ -90,8 +90,8 @@ void Atom::powerKX(Atom* atProb, const double* shift, bool oneCell) {
     eVib += potential;
     eRot += calcEnRot(shift);
     if (!oneCell) {
-        atProb->eVib -= potential;
-        atProb->eRot -= calcEnRot(shift);
+        atProb->eVib += potential;
+        atProb->eRot += calcEnRot(shift);
     }
     for (size_t i = 0; i < 3; ++i) {
         power[i] += (coord[i] - atProb->coord[i] - shift[i]) / r * force; 

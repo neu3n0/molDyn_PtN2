@@ -94,10 +94,8 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
         r1[i] += rC[i];
         r2[i] += rC[i];
     }
-
-
-    // r1 = {29.9245, 24.3016, 34.0028};
-    // r2 = {30.3086, 24.2463, 32.9972};
+    // r1 = {31.4466, 15.1664, 32.973};
+    // r2 = {31.5196, 15.3791, 34.027};
     // std::cout << "rC: " <<  (r1[0] + r2[0]) / 2 << ", " << (r1[1] + r2[1]) / 2 << ", " << (r1[2] + r2[2]) / 2 << std::endl; 
     // std::cout << "r1: " << r1[0] << " " << r1[1] << " " << r1[2] << std::endl;
     // std::cout << "r2: " << r2[0] << " " << r2[1] << " " << r2[2] << std::endl;
@@ -138,8 +136,9 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
         vAbs1[i] = vC[i] + v1[i];
         vAbs2[i] = vC[i] + v2[i];
     }
-    // vAbs1 = {609.396, -6.17173, -1478.31};
-    // vAbs2 = {27.0081, 996.449, -1755.86};
+
+    // vAbs1 = {-171.715, 789.4, -2260.17};
+    // vAbs2 = {1010.95, 648.308, -2313.63};
     // std::cout << "vAbs1: " << vAbs1[0] << " " << vAbs1[1] << " " << vAbs1[2] << std::endl;
     // std::cout << "vAbs2: " << vAbs2[0] << " " << vAbs2[1] << " " << vAbs2[2] << std::endl;
     // std::cout << "vC: " << (vAbs1[0] + vAbs2[0]) / 2 << " " << (vAbs1[1] + vAbs2[1]) / 2 << " " << (vAbs1[2] + vAbs2[2]) / 2 << std::endl; 
@@ -189,7 +188,7 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
         eTrr += pow((molsN2[0].atom[0]->vel[in] + molsN2[0].atom[1]->vel[in]) / 2, 2);
     eTrr *= MASS_FOR_N;
     double ang = std::abs(atan2((molsN2[0].atom[0]->vel[2] + molsN2[0].atom[1]->vel[2]) / 2, sqrt(pow((molsN2[0].atom[0]->vel[1] + molsN2[0].atom[1]->vel[1]) / 2, 2) + pow((molsN2[0].atom[0]->vel[0] + molsN2[0].atom[1]->vel[0]) / 2, 2))) / M_PI * 180);
-    if (false and std::abs(calcVibEn() / KB - E_vib) > 1e-1 || std::abs(calcRotEn() / KB - E_rot) > 1e-1 || std::abs(eTrr / KB - E_tr) > 1e-1 || ang - alpha > 1e-1) {
+    if (std::abs(calcVibEn() / KB - E_vib) > 1e-1 || std::abs(calcRotEn() / KB - E_rot) > 1e-1 || std::abs(eTrr / KB - E_tr) > 1e-1 || ang - alpha > 1e-1) {
         std::cerr << "bad initFromParams\n";
         std::cerr << "eVib = " << calcVibEn() / KB << std::endl;
         std::cerr << "eRot = " << calcRotEn() / KB << std::endl;
@@ -487,7 +486,7 @@ void saveInfo(Outer& out, const double E_tr, const double E_rot, const double E_
     
     out.Out << E_tr << " " << E_rot << " " << E_vib << " " << alpha << " " 
         << vel[0] / n << " " << vel[1] / n << " " << vel[2] / n << " " << eTr / n
-            << " " << eRot / n << " " << eVib / n << " " << steps / n << " " << time / n << std::endl;
+            << " " << eRot / n << " " << eVib / n << " " << steps / n << " " << time << std::endl;
 }
 
 void Space::getEnergy(Outer& out, int step) {
