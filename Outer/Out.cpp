@@ -1,4 +1,4 @@
-#include "Out.h"
+#include "Out.hpp"
 
 Outer::Outer(const std::string& out, const std::string& kinen, const std::string& poten,
         const std::string& fullen, const std::string& rmsVel, const std::string& avel,
@@ -13,7 +13,7 @@ Outer::Outer(const std::string& out, const std::string& kinen, const std::string
 }
 
 Outer::Outer(const std::string& out) {
-    Out.open("calcs/" + out);
+    Out.open("output/calcs" + out);
 }
 
 Outer::~Outer() {

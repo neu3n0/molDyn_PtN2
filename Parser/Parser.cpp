@@ -1,4 +1,4 @@
-#include "Parser.h"
+#include "Parser.hpp"
 #include <stdexcept>
 
 Parser::Parser(const int argc, char* argv[]) {
