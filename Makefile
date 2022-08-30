@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -O3 -Wall -pedantic -Wextra -Weffc++ -std=c++17 -Wshadow 
+CXXFLAGS = -O3 -fopenmp -Wall -pedantic -Wextra -Weffc++ -std=c++17 -Wshadow 
 
 md: md.cpp Parser.o Atom.o Space.o Outer.o Utils.o
 	$(CXX) $(CXXFLAGS) $< Atom.o Space.o Parser.o Outer.o Utils.o -o$@
@@ -21,6 +21,9 @@ Utils.o: Utils/Utils.cpp Utils/Utils.hpp
 
 removeVTK:
 	rm -f vtk/*.vtk
+
+removeCalcs:
+	rm -f output/calcs/*
 
 clean:
 	rm -f *.o md log*
