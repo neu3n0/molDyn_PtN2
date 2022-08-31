@@ -42,7 +42,7 @@ int main(const int argc, char* argv[]) {
         Outer outT("out_" + std::to_string(i));
         Outer outS("start_inf_" + std::to_string(i));
         double badTime = 0;
-        #pragma omp parallel for
+        #pragma omp parallel for shared(badTime)
         for (size_t j = 0; j < N; ++j) {
             // std::cout << "----- N = " << j + 1 << " -----" << std::endl;
             Space* space = new Space();
@@ -105,7 +105,7 @@ int main(const int argc, char* argv[]) {
             else { 
                 ++countBadCalcs;
                 if (countBadCalcs < 25) 
-                    --N;
+                    --j;
                 badTime += timeT;
                 std::cout << "BAD_CALC: " << E_tr[i] << " " << E_rot[i] << " " << E_vib[i] << " " << alpha[i] << std::endl;
                 for (auto x : startInf) std::cout << x << " ";
