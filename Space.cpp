@@ -63,6 +63,16 @@ void createVector(std::vector<double>& v, const double length) {
     v[2] = length * cos(theta);
 }
 
+void createVelAbs(std::vector<double>& v, const double length, const double theta) {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(0, 1);
+    double fi = M_PI * (2 * dis(gen) - 1);
+    v[0] = length * sin(theta) * cos(fi);
+    v[1] = length * sin(theta) * sin(fi);
+    v[2] = length * cos(theta);
+}
+
 bool renorm(std::vector<double>& s) {
     double length(0);
     for (size_t i = 0; i < 3; ++i) length += s[i] * s[i];
@@ -94,8 +104,9 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
         r1[i] += rC[i];
         r2[i] += rC[i];
     }
-    // r1 = {31.4466, 15.1664, 32.973};
-    // r2 = {31.5196, 15.3791, 34.027};
+
+    // r1 = {27.0127, 25.1292, 33.8232};
+    // r2 = {26.1671, 25.2988, 33.1768};
     // std::cout << "rC: " <<  (r1[0] + r2[0]) / 2 << ", " << (r1[1] + r2[1]) / 2 << ", " << (r1[2] + r2[2]) / 2 << std::endl; 
     // std::cout << "r1: " << r1[0] << " " << r1[1] << " " << r1[2] << std::endl;
     // std::cout << "r2: " << r2[0] << " " << r2[1] << " " << r2[2] << std::endl;
@@ -107,11 +118,7 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
 
     // vel 
     std::vector<double> vC(3);
-    vC[0] = 1.0 * rand() / RAND_MAX;
-    vC[1] = 1.0 * rand() / RAND_MAX;
-    vC[2] = -tan(alpha / 180 * M_PI) * sqrt(vC[0] * vC[0] + vC[1] * vC[1]);
-    renorm(vC);
-    for (auto& x : vC) x *= modV;
+    createVelAbs(vC, modV, (180 - alpha) * M_PI / 180);
     // std::cout << "vC: " << vC[0] <<  " " << vC[1] << " " << vC[2] << std::endl;
     // renorm(e1);
     std::vector<double> w_dir(3);
@@ -136,19 +143,21 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
         vAbs1[i] = vC[i] + v1[i];
         vAbs2[i] = vC[i] + v2[i];
     }
-
-    // vAbs1 = {-171.715, 789.4, -2260.17};
-    // vAbs2 = {1010.95, 648.308, -2313.63};
+      
+    // vAbs1 = {1794.02, 953.475, -2194.53};
+    // vAbs2 = {1070.14, 954.944, -1247.19};
     // std::cout << "vAbs1: " << vAbs1[0] << " " << vAbs1[1] << " " << vAbs1[2] << std::endl;
     // std::cout << "vAbs2: " << vAbs2[0] << " " << vAbs2[1] << " " << vAbs2[2] << std::endl;
     // std::cout << "vC: " << (vAbs1[0] + vAbs2[0]) / 2 << " " << (vAbs1[1] + vAbs2[1]) / 2 << " " << (vAbs1[2] + vAbs2[2]) / 2 << std::endl; 
-    std::vector<double> wW(3);
 
-    wW = Utils::vecProd(e1, v1);
-    wW[0] /= Utils::scalProd(e1, e1);
-    wW[1] /= Utils::scalProd(e1, e1);
-    wW[2] /= Utils::scalProd(e1, e1);
-    // std::cout << "ERot: " << MASS_FOR_N * Constants::bondR0 * Constants::bondR0 / 2 * (wW[0] * wW[0] + wW[1] * wW[1] + wW[2] * wW[2]) / 2 / KB << std::endl;
+    // std::vector<double> wW(3);
+    // wW = Utils::vecProd(e1, v1);
+    // wW[0] /= Utils::scalProd(e1, e1);
+    // wW[1] /= Utils::scalProd(e1, e1);
+    // wW[2] /= Utils::scalProd(e1, e1);
+    // double I = 2 * MASS_FOR_N * Utils::scalProd(e1, e1);
+    // double W2 = Utils::scalProd(wW, wW);
+    // std::cout << "EROT = " << I * W2 / 2 / KB << std::endl;
     // std::cout << "alpha: " << vC[2] / sqrt(vC[0] * vC[0] + vC[1] * vC[1]) << std::endl;
     // std::cout << "Etr: " << MASS_FOR_N * (vC[0] * vC[0] + vC[1] * vC[1] + vC[2] * vC[2]) / KB << std::endl;
 
@@ -188,6 +197,7 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
         eTrr += pow((molsN2[0].atom[0]->vel[in] + molsN2[0].atom[1]->vel[in]) / 2, 2);
     eTrr *= MASS_FOR_N;
     double ang = std::abs(atan2((molsN2[0].atom[0]->vel[2] + molsN2[0].atom[1]->vel[2]) / 2, sqrt(pow((molsN2[0].atom[0]->vel[1] + molsN2[0].atom[1]->vel[1]) / 2, 2) + pow((molsN2[0].atom[0]->vel[0] + molsN2[0].atom[1]->vel[0]) / 2, 2))) / M_PI * 180);
+    ang = 90 - ang;
     if (std::abs(calcVibEn() / KB - E_vib) > 1e-1 || std::abs(calcRotEn() / KB - E_rot) > 1e-1 || std::abs(eTrr / KB - E_tr) > 1e-1 || ang - alpha > 1e-1) {
         std::cerr << "bad initFromParams\n";
         std::cerr << "eVib = " << calcVibEn() / KB << std::endl;
@@ -207,11 +217,6 @@ bool Space::initFromEnergy(std::istream& inp) {
 }
 
 int Space::MDStep() {
-    // double Rr = pow(molsN2[0].atom[0]->coord[0] - molsN2[0].atom[1]->coord[0], 2) 
-    //     + pow(molsN2[0].atom[0]->coord[1] - molsN2[0].atom[1]->coord[1], 2) 
-    //         + pow(molsN2[0].atom[0]->coord[2] - molsN2[0].atom[1]->coord[2], 2);
-    // std::cout << "r: " << sqrt(Rr) << std::endl;
-
     resetChecker();
 
     int turnOff = 0;
@@ -276,6 +281,20 @@ int Space::MDStep() {
     // potEn /= 2;
     // energy = kinEn + potEn + vibEn;
 
+    // double eT = 0;
+    // std::vector<double> vTmp(3, 0);
+    // for (size_t in = 0; in < 3; ++in)
+    //     vTmp[in] = (molsN2[0].atom[0]->vel[in] + molsN2[0].atom[1]->vel[in]) / 2.0;
+
+    // for (size_t in = 0; in < 3; ++in) eT += vTmp[in] * vTmp[in];
+    // eT *= MASS_FOR_N / KB; 
+
+    // static int step = 1;
+    // double Rr = pow(molsN2[0].atom[0]->coord[0] - molsN2[0].atom[1]->coord[0], 2) 
+    //     + pow(molsN2[0].atom[0]->coord[1] - molsN2[0].atom[1]->coord[1], 2) 
+    //         + pow(molsN2[0].atom[0]->coord[2] - molsN2[0].atom[1]->coord[2], 2);
+    // std::cout << step << " " << Rr << " " << molsN2[0].atom[0]->eVib / KB << " " << molsN2[0].atom[0]->eRot / KB << " " << eT << std::endl;
+    // ++step;
     if (turnOff) return 1;
     return 0;
 }

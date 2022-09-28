@@ -147,7 +147,7 @@ double LJ_P(const double r, const int type1, const int type2) {
 }
 
 double KX_F(const double r) {
-    return 2 * Constants::bondK * (Constants::bondR0 - r);
+    return Constants::bondK * (Constants::bondR0 - r);
 }
 
 double KX_P(const double r) {
