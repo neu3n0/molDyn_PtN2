@@ -322,6 +322,8 @@ void Space::SetNullMacro() {
                     cells[i][j][k].atoms[indAt]->ljEn = 0;
                     cells[i][j][k].atoms[indAt]->eRot = 0;
                     cells[i][j][k].atoms[indAt]->eVib = 0;
+                    cells[i][j][k].atoms[indAt]->testVib1 = 0;
+                    cells[i][j][k].atoms[indAt]->testVib2 = 0;                    
                 }
 }
 

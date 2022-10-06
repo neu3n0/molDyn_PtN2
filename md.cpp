@@ -31,7 +31,7 @@ int main(const int argc, char* argv[]) {
     
     auto wholeStart = std::chrono::steady_clock::now();
 
-    size_t N = 100;
+    size_t N = 1;
     for (size_t i = 0; i < E_tr.size(); ++i) {
         size_t countBadCalcs = 0;
         // std::cout << E_tr[i] << "  " << E_rot[i] << "  " << E_vib[i] << " " << alpha[i] << std::endl;
@@ -42,7 +42,7 @@ int main(const int argc, char* argv[]) {
         Outer outT("out_" + std::to_string(i));
         Outer outS("start_inf_" + std::to_string(i));
         double badTime = 0;
-        #pragma omp parallel for shared(badTime)
+        // #pragma omp parallel for shared(badTime)
         for (size_t j = 0; j < N; ++j) {
             // std::cout << "----- N = " << j + 1 << " -----" << std::endl;
             Space* space = new Space();
@@ -66,7 +66,7 @@ int main(const int argc, char* argv[]) {
             auto start = std::chrono::steady_clock::now();
             space->vtkNum = 0;
 
-            while (!space->MDStep() && step < MAXSTEPS) {
+            while (!space->MDStep() && step < MAXSTEPS && step < 10000) {
                 // if (step % 100 == 0) {
                 //     auto tmp = std::chrono::steady_clock::now();
                 //     std::cout << "step: " << step << "  |  " << static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(tmp - start).count()) / 1000 << " sec" << std::endl;

@@ -81,16 +81,39 @@ void Atom::powerLJ(Atom* atProb, const double* shift, bool oneCell) {
     }
 } 
 
+double Atom::kinVib(const double* shift) {
+    double* line = new double[3];
+    for (size_t i = 0; i < 3; ++i) 
+        line[i] = coord[i] - atMolN2->coord[i] - shift[i];
+    double* velRel = new double[3];
+    for (size_t i = 0; i < 3; ++i) 
+        velRel[i] = vel[i] - (vel[i] + atMolN2->vel[i]) / 2;
+        // velRel[i] = (vel[i] +  vel2[i]) / 2 - ((vel[i] +  vel2[i]) / 2 + (atMolN2->vel[i] + atMolN2->vel2[i]) / 2) / 2;
+
+    double vRel = Utils::scalProd(velRel, line) / Utils::scalProd(line, line);
+    // std::cout << sqrt(Utils::scalProd(velRel, velRel)) << " " << std::abs(vRel) << std::endl;
+    delete[] line;
+    delete[] velRel;
+    return m * vRel * vRel;
+}
+
 void Atom::powerKX(Atom* atProb, const double* shift, bool oneCell) {
     double r = 0;
     for (size_t i = 0; i < 3; ++i) r += (coord[i] - atProb->coord[i] - shift[i]) * (coord[i] - atProb->coord[i] - shift[i]);
     r = sqrt(r);
     double force = KX_F(r);
     double potential = KX_P(r); 
+    double kinetical = kinVib(shift);
     eVib += potential;
+    eVib += kinetical;
+    testVib1 += potential;
+    testVib2 += kinetical;
     eRot += calcEnRot(shift);
     if (!oneCell) {
         atProb->eVib += potential;
+        eVib += kinetical;
+        testVib1 += potential;
+        testVib2 += kinetical;
         atProb->eRot += calcEnRot(shift);
     }
     for (size_t i = 0; i < 3; ++i) {
