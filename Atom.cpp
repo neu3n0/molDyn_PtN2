@@ -88,10 +88,8 @@ double Atom::kinVib(const double* shift) {
     double* velRel = new double[3];
     for (size_t i = 0; i < 3; ++i) 
         velRel[i] = vel[i] - (vel[i] + atMolN2->vel[i]) / 2;
-        // velRel[i] = (vel[i] +  vel2[i]) / 2 - ((vel[i] +  vel2[i]) / 2 + (atMolN2->vel[i] + atMolN2->vel2[i]) / 2) / 2;
 
     double vRel = Utils::scalProd(velRel, line) / sqrt(Utils::scalProd(line, line));
-    // std::cout << sqrt(Utils::scalProd(velRel, velRel)) << " " << std::abs(vRel) << std::endl;
     delete[] line;
     delete[] velRel;
     return m * vRel * vRel;
@@ -102,26 +100,28 @@ void Atom::powerKX(Atom* atProb, const double* shift, bool oneCell) {
     for (size_t i = 0; i < 3; ++i) r += (coord[i] - atProb->coord[i] - shift[i]) * (coord[i] - atProb->coord[i] - shift[i]);
     r = sqrt(r);
     double force = KX_F(r);
-    double potential = KX_P(r); 
-    double kinetical = kinVib(shift);
-    eVib += potential;
-    eVib += kinetical;
-    testVib1 += potential;
-    testVib2 += kinetical;
-    eRot += calcEnRot(shift);
+    double vib = calcEnVib(shift, r);
+    double rot = calcEnRot(shift);
+    eVib += vib;
+    eRot += rot;
     if (!oneCell) {
-        atProb->eVib += potential;
-        atProb->eVib += kinetical;
-        atProb->testVib1 += potential;
-        atProb->testVib2 += kinetical;
-        atProb->eRot += calcEnRot(shift);
+        atProb->eVib += vib;
+        atProb->eRot += rot;
     }
     for (size_t i = 0; i < 3; ++i) {
         power[i] += (coord[i] - atProb->coord[i] - shift[i]) / r * force; 
         if (!oneCell)
             atProb->power[i] -= (coord[i] - atProb->coord[i] - shift[i]) / r * force;
     }
-} 
+}
+
+double Atom::calcEnVib(const double* shift, const double r) {
+    double potential = KX_P(r); 
+    double kinetical = kinVib(shift);
+    testVib1 += potential;
+    testVib2 += kinetical;
+    return potential + kinetical;
+}
 
 double Atom::calcEnRot(const double* shift) {
     double vC[3];
@@ -147,15 +147,6 @@ double Atom::calcEnRot(const double* shift) {
 
     double W2 = Utils::scalProd(w, w);
     res = I * W2 / 2;
-    return res;
-}
-
-double Atom::calcEnVib(const double* shift) {
-    double res(0);
-    double r = 0;
-    for (size_t ir = 0; ir < 3; ++ir) r += (coord[ir] - atMolN2->coord[ir] - shift[ir]) * (coord[ir] - atMolN2->coord[ir] - shift[ir]);
-    r = sqrt(r);
-    res = KX_P(r);
     return res;
 }
 

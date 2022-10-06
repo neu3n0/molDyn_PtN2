@@ -66,15 +66,15 @@ int main(const int argc, char* argv[]) {
             auto start = std::chrono::steady_clock::now();
             space->vtkNum = 0;
 
-            while (!space->MDStep() && step < MAXSTEPS && step < 10000) {
+            while (!space->MDStep() && step < MAXSTEPS) {
                 // if (step % 100 == 0) {
                 //     auto tmp = std::chrono::steady_clock::now();
                 //     std::cout << "step: " << step << "  |  " << static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(tmp - start).count()) / 1000 << " sec" << std::endl;
                 // }
-                // // if (step % 100 == 0) space->writeVTK(pars.getOutFile() + "_" + std::to_string(i) + "_" + std::to_string(j));
+                if (step % 100 == 0) space->writeVTK(pars.getOutFile() + "_" + std::to_string(i) + "_" + std::to_string(j));
                 ++step;
             }
-            // space->writeVTK(pars.getOutFile() + "_" + std::to_string(i) + "_" + std::to_string(j));
+            space->writeVTK(pars.getOutFile() + "_" + std::to_string(i) + "_" + std::to_string(j));
             
             auto tmp = std::chrono::steady_clock::now();
             double timeT = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(tmp - start).count()) / 1000;

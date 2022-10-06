@@ -104,10 +104,7 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
         r1[i] += rC[i];
         r2[i] += rC[i];
     }
-    r1 = {2, - Constants::bondR0 / 2 , 2};
-    r2 = {2, Constants::bondR0 / 2, 2};
-    // r1 = {27.0127, 25.1292, 33.8232};
-    // r2 = {26.1671, 25.2988, 33.1768};
+
     // std::cout << "rC: " <<  (r1[0] + r2[0]) / 2 << ", " << (r1[1] + r2[1]) / 2 << ", " << (r1[2] + r2[2]) / 2 << std::endl; 
     // std::cout << "r1: " << r1[0] << " " << r1[1] << " " << r1[2] << std::endl;
     // std::cout << "r2: " << r2[0] << " " << r2[1] << " " << r2[2] << std::endl;
@@ -144,8 +141,6 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
         vAbs1[i] = vC[i] + v1[i];
         vAbs2[i] = vC[i] + v2[i];
     }
-    vAbs1 = {0, 30, 0};
-    vAbs2 = {0, -30, 0};        
     // vAbs1 = {1794.02, 953.475, -2194.53};
     // vAbs2 = {1070.14, 954.944, -1247.19};
     // std::cout << "vAbs1: " << vAbs1[0] << " " << vAbs1[1] << " " << vAbs1[2] << std::endl;
@@ -283,31 +278,31 @@ int Space::MDStep() {
     // potEn /= 2;
     // energy = kinEn + potEn + vibEn;
 
-    // double eT = 0;
-    // std::vector<double> vTmp(3, 0);
-    // for (size_t in = 0; in < 3; ++in)
-    //     vTmp[in] = (molsN2[0].atom[0]->vel[in] + molsN2[0].atom[1]->vel[in]) / 2.0;
+    double eT = 0;
+    std::vector<double> vTmp(3, 0);
+    for (size_t in = 0; in < 3; ++in)
+        vTmp[in] = (molsN2[0].atom[0]->vel[in] + molsN2[0].atom[1]->vel[in]) / 2.0;
 
-    // for (size_t in = 0; in < 3; ++in) eT += vTmp[in] * vTmp[in];
-    // eT *= MASS_FOR_N / KB; 
-
-    // static int step = 1;
-    // double Rr = pow(molsN2[0].atom[0]->coord[0] - molsN2[0].atom[1]->coord[0], 2) 
-    //     + pow(molsN2[0].atom[0]->coord[1] - molsN2[0].atom[1]->coord[1], 2) 
-    //         + pow(molsN2[0].atom[0]->coord[2] - molsN2[0].atom[1]->coord[2], 2);
-    // std::cout << step << " " << Rr << " " << molsN2[0].atom[0]->eVib / KB << " " << molsN2[0].atom[0]->eRot / KB << " " << eT << std::endl;
-    // ++step;
-
+    for (size_t in = 0; in < 3; ++in) eT += vTmp[in] * vTmp[in];
+    eT *= MASS_FOR_N; 
 
     static int step = 1;
-    std::cout << step << " ";
-    std::cout << molsN2[0].atom[1]->coord[1] << " ";
-    std::cout << molsN2[0].atom[1]->vel[1] << " ";
-    std::cout << molsN2[0].atom[1]->power[1] << " ";
-    std::cout << molsN2[0].atom[0]->testVib1  << " " << molsN2[0].atom[0]->testVib2  << " " << molsN2[0].atom[0]->eVib;
-    std::cout << std::endl;   
-    
+    double Rr = pow(molsN2[0].atom[0]->coord[0] - molsN2[0].atom[1]->coord[0], 2) 
+        + pow(molsN2[0].atom[0]->coord[1] - molsN2[0].atom[1]->coord[1], 2) 
+            + pow(molsN2[0].atom[0]->coord[2] - molsN2[0].atom[1]->coord[2], 2);
+    std::cout << step << " " << Rr << " " << molsN2[0].atom[0]->eVib / KB << " " << molsN2[0].atom[0]->eRot / KB << " " << eT / KB << std::endl;
     ++step;
+
+
+    // static int step = 1;
+    // std::cout << step << " ";
+    // std::cout << molsN2[0].atom[1]->coord[1] << " ";
+    // std::cout << molsN2[0].atom[1]->vel[1] << " ";
+    // std::cout << molsN2[0].atom[1]->power[1] << " ";
+    // std::cout << molsN2[0].atom[0]->testVib1  << " " << molsN2[0].atom[0]->testVib2  << " " << molsN2[0].atom[0]->eVib;
+    // std::cout << std::endl;   
+    
+    // ++step;
 
 
     if (turnOff) return 1;
@@ -505,13 +500,29 @@ double Space::calcRotEn() {
     return res;
 }
 
+double Space::calcKinVib() {
+    double* line = new double[3];
+    for (size_t i = 0; i < 3; ++i) 
+        line[i] = molsN2[0].atom[0]->coord[i] - molsN2[0].atom[1]->coord[i];
+    double* velRel = new double[3];
+    for (size_t i = 0; i < 3; ++i) 
+        velRel[i] = molsN2[0].atom[0]->vel[i] - (molsN2[0].atom[0]->vel[i] + molsN2[0].atom[1]->vel[i]) / 2;
+
+    double vRel = Utils::scalProd(velRel, line) / sqrt(Utils::scalProd(line, line));
+    delete[] line;
+    delete[] velRel;
+    return molsN2[0].atom[0]->m * vRel * vRel;
+}
+
 double Space::calcVibEn() {
-    double res(0);
+    double res{0};
     if (!molsN2.empty()) {
         double r = 0;
         for (size_t ir = 0; ir < 3; ++ir) r += (molsN2[0].atom[0]->coord[ir] - molsN2[0].atom[1]->coord[ir]) * (molsN2[0].atom[0]->coord[ir] - molsN2[0].atom[1]->coord[ir]);
         r = sqrt(r);
-        res = KX_P(r);
+        double potential = KX_P(r); 
+        double kinetical = calcKinVib();
+        res = potential + kinetical;
     }
     return res;
 }

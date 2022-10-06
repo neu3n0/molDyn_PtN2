@@ -56,6 +56,7 @@ public:
 	void saveStruct();
 	double calcRotEn();
 	double calcVibEn();
+	double calcKinVib();
 };
 
 void saveInfo(Outer& out, const double E_tr, const double E_rot, const double E_vib,
