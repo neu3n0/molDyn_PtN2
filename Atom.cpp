@@ -48,8 +48,10 @@ int Atom::coordShift(const double dt, const double* spaceLength, bool isZ_period
 }
 
 void Atom::velShift(const double dt) {
-    for (size_t i = 0; i < 3; ++i)
+    for (size_t i = 0; i < 3; ++i) {
+        vel2[i] = vel[i];
         vel[i] += power[i] * dt / m;
+    }
 }
 
 double Atom::kinEnergy() {
@@ -87,8 +89,9 @@ double Atom::kinVib(const double* shift) {
         line[i] = coord[i] - atMolN2->coord[i] - shift[i];
     double* velRel = new double[3];
     for (size_t i = 0; i < 3; ++i) 
-        velRel[i] = vel[i] - (vel[i] + atMolN2->vel[i]) / 2;
-        // velRel[i] = (vel[i] +  vel2[i]) / 2 - ((vel[i] +  vel2[i]) / 2 + (atMolN2->vel[i] + atMolN2->vel2[i]) / 2) / 2;
+        velRel[i] = (vel[i] +  vel2[i]) / 2 - ((vel[i] +  vel2[i]) / 2 + (atMolN2->vel[i] + atMolN2->vel2[i]) / 2) / 2;
+        // velRel[i] = vel[i] - (vel[i] + atMolN2->vel[i]) / 2;
+
 
     double vRel = Utils::scalProd(velRel, line) / sqrt(Utils::scalProd(line, line));
     // std::cout << sqrt(Utils::scalProd(velRel, velRel)) << " " << std::abs(vRel) << std::endl;
