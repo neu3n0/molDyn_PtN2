@@ -168,6 +168,7 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
     // std::cout << "ind: " << i << "  " << j << "  " << k << std::endl;
     if (i >= 0 && j >= 0 && k >= 0 && i < static_cast<int>(numberCellsX) && j < static_cast<int>(numberCellsY) && k < static_cast<int>(numberCellsZ)) {
         Atom* atom = new Atom(r1, vAbs1, MASS_FOR_N, 0);
+        for (size_t ii = 0; ii < 3; ++ii) atom->vel2[ii] = atom->vel[ii];
         cells[i][j][k].atoms.push_back(atom);
         mol.atom[0] = atom;
     }
@@ -181,6 +182,7 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
     // std::cout << "ind: " << i << "  " << j << "  " << k << std::endl;
     if (i >= 0 && j >= 0 && k >= 0 && i < static_cast<int>(numberCellsX) && j < static_cast<int>(numberCellsY) && k < static_cast<int>(numberCellsZ)) {
         Atom* atom = new Atom(r2, vAbs2, MASS_FOR_N, 0);
+        for (size_t ii = 0; ii < 3; ++ii) atom->vel2[ii] = atom->vel[ii];
         cells[i][j][k].atoms.push_back(atom);
         mol.atom[1] = atom;
     }
