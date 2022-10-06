@@ -104,7 +104,8 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
         r1[i] += rC[i];
         r2[i] += rC[i];
     }
-
+    r1 = {2, - Constants::bondR0 / 2 , 2};
+    r2 = {2, Constants::bondR0 / 2, 2};
     // r1 = {27.0127, 25.1292, 33.8232};
     // r2 = {26.1671, 25.2988, 33.1768};
     // std::cout << "rC: " <<  (r1[0] + r2[0]) / 2 << ", " << (r1[1] + r2[1]) / 2 << ", " << (r1[2] + r2[2]) / 2 << std::endl; 
@@ -143,7 +144,8 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
         vAbs1[i] = vC[i] + v1[i];
         vAbs2[i] = vC[i] + v2[i];
     }
-      
+    vAbs1 = {0, 30, 0};
+    vAbs2 = {0, -30, 0};        
     // vAbs1 = {1794.02, 953.475, -2194.53};
     // vAbs2 = {1070.14, 954.944, -1247.19};
     // std::cout << "vAbs1: " << vAbs1[0] << " " << vAbs1[1] << " " << vAbs1[2] << std::endl;
@@ -295,6 +297,19 @@ int Space::MDStep() {
     //         + pow(molsN2[0].atom[0]->coord[2] - molsN2[0].atom[1]->coord[2], 2);
     // std::cout << step << " " << Rr << " " << molsN2[0].atom[0]->eVib / KB << " " << molsN2[0].atom[0]->eRot / KB << " " << eT << std::endl;
     // ++step;
+
+
+    static int step = 1;
+    std::cout << step << " ";
+    std::cout << molsN2[0].atom[1]->coord[1] << " ";
+    std::cout << molsN2[0].atom[1]->vel[1] << " ";
+    std::cout << molsN2[0].atom[1]->power[1] << " ";
+    std::cout << molsN2[0].atom[0]->testVib1  << " " << molsN2[0].atom[0]->testVib2  << " " << molsN2[0].atom[0]->eVib;
+    std::cout << std::endl;   
+    
+    ++step;
+
+
     if (turnOff) return 1;
     return 0;
 }

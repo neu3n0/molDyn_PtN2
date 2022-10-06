@@ -90,7 +90,7 @@ double Atom::kinVib(const double* shift) {
         velRel[i] = vel[i] - (vel[i] + atMolN2->vel[i]) / 2;
         // velRel[i] = (vel[i] +  vel2[i]) / 2 - ((vel[i] +  vel2[i]) / 2 + (atMolN2->vel[i] + atMolN2->vel2[i]) / 2) / 2;
 
-    double vRel = Utils::scalProd(velRel, line) / Utils::scalProd(line, line);
+    double vRel = Utils::scalProd(velRel, line) / sqrt(Utils::scalProd(line, line));
     // std::cout << sqrt(Utils::scalProd(velRel, velRel)) << " " << std::abs(vRel) << std::endl;
     delete[] line;
     delete[] velRel;
@@ -111,9 +111,9 @@ void Atom::powerKX(Atom* atProb, const double* shift, bool oneCell) {
     eRot += calcEnRot(shift);
     if (!oneCell) {
         atProb->eVib += potential;
-        eVib += kinetical;
-        testVib1 += potential;
-        testVib2 += kinetical;
+        atProb->eVib += kinetical;
+        atProb->testVib1 += potential;
+        atProb->testVib2 += kinetical;
         atProb->eRot += calcEnRot(shift);
     }
     for (size_t i = 0; i < 3; ++i) {
