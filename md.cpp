@@ -3,7 +3,7 @@
 #include <chrono>
 #include <omp.h>
 
-const size_t MAXSTEPS = 120000;
+const size_t MAXSTEPS = 300000;
 
 int main(const int argc, char* argv[]) {
     Parser pars(argc, argv);
@@ -31,7 +31,7 @@ int main(const int argc, char* argv[]) {
     
     auto wholeStart = std::chrono::steady_clock::now();
 
-    size_t N = 50;
+    size_t N = 80;
     for (size_t i = 0; i < E_tr.size(); ++i) {
         size_t countBadCalcs = 0;
         // std::cout << E_tr[i] << "  " << E_rot[i] << "  " << E_vib[i] << " " << alpha[i] << std::endl;

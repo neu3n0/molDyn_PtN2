@@ -105,8 +105,8 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
         r2[i] += rC[i];
     }
 
-    // r1 = {18.6745, 5.26733, 32.9938};
-    // r2 = {18.9412, 5.52338, 34.0062};
+    // r1 = {20.6722, 15.1982, 33.0334};
+    // r2 = {21.1571, 14.9624, 33.9666};
     // std::cout << "rC: " <<  (r1[0] + r2[0]) / 2 << ", " << (r1[1] + r2[1]) / 2 << ", " << (r1[2] + r2[2]) / 2 << std::endl; 
     // std::cout << "r1: " << r1[0] << " " << r1[1] << " " << r1[2] << std::endl;
     // std::cout << "r2: " << r2[0] << " " << r2[1] << " " << r2[2] << std::endl;
@@ -143,9 +143,8 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
         vAbs1[i] = vC[i] + v1[i];
         vAbs2[i] = vC[i] + v2[i];
     }
-       
-    // vAbs1 = {-820.212, -824.678, -1366.8};
-    // vAbs2 = {-28.7172, -672.216, -1613.82};
+    // vAbs1 = {-120.402, -114.58, -2227.9};
+    // vAbs2 = {-681.477, 798.603, -1705.65};
     // std::cout << "vAbs1: " << vAbs1[0] << " " << vAbs1[1] << " " << vAbs1[2] << std::endl;
     // std::cout << "vAbs2: " << vAbs2[0] << " " << vAbs2[1] << " " << vAbs2[2] << std::endl;
     // std::cout << "vC: " << (vAbs1[0] + vAbs2[0]) / 2 << " " << (vAbs1[1] + vAbs2[1]) / 2 << " " << (vAbs1[2] + vAbs2[2]) / 2 << std::endl; 
@@ -198,14 +197,14 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
     eTrr *= MASS_FOR_N;
     double ang = std::abs(atan2((molsN2[0].atom[0]->vel[2] + molsN2[0].atom[1]->vel[2]) / 2, sqrt(pow((molsN2[0].atom[0]->vel[1] + molsN2[0].atom[1]->vel[1]) / 2, 2) + pow((molsN2[0].atom[0]->vel[0] + molsN2[0].atom[1]->vel[0]) / 2, 2))) / M_PI * 180);
     ang = 90 - ang;
-    // if (std::abs(calcVibEn() / KB - E_vib) > 1e-1 || std::abs(calcRotEn() / KB - E_rot) > 1e-1 || std::abs(eTrr / KB - E_tr) > 1e-1 || ang - alpha > 1e-1) {
-    //     std::cerr << "bad initFromParams\n";
-    //     std::cerr << "eVib = " << calcVibEn() / KB << std::endl;
-    //     std::cerr << "eRot = " << calcRotEn() / KB << std::endl;
-    //     std::cerr << "eTr = " << eTrr / KB << std::endl;
-    //     std::cerr << "ang = " << ang << std::endl;
-    //     return false;
-    // }
+    if (std::abs(calcVibEn() / KB - E_vib) > 1e-1 || std::abs(calcRotEn() / KB - E_rot) > 1e-1 || std::abs(eTrr / KB - E_tr) > 1e-1 || ang - alpha > 1e-1) {
+        std::cerr << "bad initFromParams\n";
+        std::cerr << "eVib = " << calcVibEn() / KB << std::endl;
+        std::cerr << "eRot = " << calcRotEn() / KB << std::endl;
+        std::cerr << "eTr = " << eTrr / KB << std::endl;
+        std::cerr << "ang = " << ang << std::endl;
+        return false;
+    }
 
     return true; 
 }
