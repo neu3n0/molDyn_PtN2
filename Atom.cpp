@@ -24,19 +24,18 @@ int Atom::coordShift(const double dt, const double* spaceLength, bool isZ_period
     if (was) return 0;
     for (size_t i = 0; i < 3; ++i) {
         coord[i] += vel[i] * dt;
-        if (atMolN2 != nullptr && i == 2 && ((coord[i] + atMolN2->coord[i]) / 2) >= hMax + 0.1) {
-            was = true;
-            return 1;
-        }
         if ((!isZ_periodic && i == 2) && (coord[i] < 0 || coord[i] > spaceLength[i])) continue;
         if (!atMolN2) {
             if (coord[i] < 0) coord[i] += spaceLength[i];
             if (coord[i] > spaceLength[i]) coord[i] -= spaceLength[i];
         }
         else {
-            if (i == 2) continue;
             if (coord[i] < 0) coord[i] += spaceLength[i];
             if (coord[i] > spaceLength[i]) coord[i] -= spaceLength[i];
+        }
+        if (atMolN2 != nullptr && i == 2 && ((coord[i] + atMolN2->coord[i]) / 2) >= hMax + 0.1) {
+            was = true;
+            return 1;
         }
         if ((coord[i] < 0 || coord[i] > spaceLength[i]) && !atMolN2) {
             std::cout << i << " " << coord[i] << " " << vel[i] << " " << dt << " " << type << std::endl;

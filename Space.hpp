@@ -57,6 +57,12 @@ public:
 	double calcRotEn();
 	double calcVibEn();
 	double calcKinVib();
+public:
+	bool saveAvg{false};
+	void saveAvgEn();
+	double avgVibEn{0};
+	double avgRotEn{0};
+	size_t indAvg{0};
 };
 
 void saveInfo(Outer& out, const double E_tr, const double E_rot, const double E_vib,

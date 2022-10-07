@@ -31,7 +31,7 @@ int main(const int argc, char* argv[]) {
     
     auto wholeStart = std::chrono::steady_clock::now();
 
-    size_t N = 100;
+    size_t N = 50;
     for (size_t i = 0; i < E_tr.size(); ++i) {
         size_t countBadCalcs = 0;
         // std::cout << E_tr[i] << "  " << E_rot[i] << "  " << E_vib[i] << " " << alpha[i] << std::endl;
@@ -65,6 +65,7 @@ int main(const int argc, char* argv[]) {
             size_t step = 0;
             auto start = std::chrono::steady_clock::now();
             space->vtkNum = 0;
+            space->saveAvg = false;
 
             while (!space->MDStep() && step < MAXSTEPS) {
                 // if (step % 100 == 0) {
@@ -75,22 +76,21 @@ int main(const int argc, char* argv[]) {
                 ++step;
             }
             // space->writeVTK(pars.getOutFile() + "_" + std::to_string(i) + "_" + std::to_string(j));
-            
-            auto tmp = std::chrono::steady_clock::now();
-            double timeT = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(tmp - start).count()) / 1000;
-            // std::cout << "duration of calculation: " << timeT << " sec" << std::endl;
-
             double eV = 0, eR = 0, eT = 0;
             std::vector<double> vTmp(3, 0);
             if (!space->molsN2.empty()) {
                 for (size_t in = 0; in < 3; ++in)
                     vTmp[in] = (space->molsN2[0].atom[0]->vel[in] + space->molsN2[0].atom[1]->vel[in]) / 2.0;
-
-                eV = space->molsN2[0].atom[0]->eVib / KB;
-                eR = space->molsN2[0].atom[0]->eRot / KB;
                 for (size_t in = 0; in < 3; ++in) eT += vTmp[in] * vTmp[in];
                 eT *= MASS_FOR_N / KB; 
             }
+            space->saveAvg = true;
+            for (size_t gr = 0; gr < 150; ++gr) space->MDStep();
+            eV = space->avgVibEn / 144;
+            eR = space->avgRotEn / 144;
+            auto tmp = std::chrono::steady_clock::now();
+            double timeT = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(tmp - start).count()) / 1000;
+            // std::cout << "duration of calculation: " << timeT << " sec" << std::endl;
             
             if (step != MAXSTEPS) {
                 for (size_t in = 0; in < 3; ++in) vel[in] += vTmp[in];
