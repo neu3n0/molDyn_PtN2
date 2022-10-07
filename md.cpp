@@ -31,7 +31,7 @@ int main(const int argc, char* argv[]) {
     
     auto wholeStart = std::chrono::steady_clock::now();
 
-    size_t N = 80;
+    size_t N = 85;
     for (size_t i = 0; i < E_tr.size(); ++i) {
         size_t countBadCalcs = 0;
         // std::cout << E_tr[i] << "  " << E_rot[i] << "  " << E_vib[i] << " " << alpha[i] << std::endl;
@@ -104,7 +104,7 @@ int main(const int argc, char* argv[]) {
             }
             else { 
                 ++countBadCalcs;
-                if (countBadCalcs < 25) 
+                if (countBadCalcs < 8) 
                     --j;
                 badTime += timeT;
                 std::cout << "BAD_CALC: " << E_tr[i] << " " << E_rot[i] << " " << E_vib[i] << " " << alpha[i] << std::endl;
