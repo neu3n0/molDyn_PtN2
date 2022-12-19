@@ -28,14 +28,20 @@ public:
     Atom(const std::vector<double>& coord0, const std::vector<double>& vel0, const double m0, const int type_);
     int coordShift(const double dt, const double* spaceLength, bool isZ_periodic, const double hMax);
     void velShift(const double dt);
+    void velHalfShift(const double dt);
     bool checkCell(const size_t i0, const size_t j0, const size_t k0, size_t& i, size_t& j, size_t& k, const double lengthCell);
     void powerLJ(Atom* atProb, const double* shift, bool);
     void powerKX(Atom* atProb, const double* shift, bool);
+    double kinVib(const double*);
     double kinEnergy();
+    double testVib1 = 0;
+    double testVib2 = 0;
 public:
     double coord[3]{0, 0, 0};
     double vel[3]{0, 0, 0};
     double power[3]{0, 0, 0};
+    double velHalf[3]{0, 0, 0};
+    double vel2[3]{0, 0, 0};
     double m{0};
     Atom* atMolN2{nullptr};
     int type{-1};

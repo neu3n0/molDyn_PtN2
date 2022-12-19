@@ -23,6 +23,7 @@ Atom::Atom(const std::vector<double>& coord0, const std::vector<double>& vel0, c
 int Atom::coordShift(const double dt, const double* spaceLength, bool isZ_periodic, const double hMax) {
     if (was) return 0;
     for (size_t i = 0; i < 3; ++i) {
+        // coord[i] += velHalf[i] * dt;
         coord[i] += vel[i] * dt;
         if (atMolN2 != nullptr && i == 2 && ((coord[i] + atMolN2->coord[i]) / 2) >= hMax + 0.1) {
             was = true;
@@ -48,8 +49,16 @@ int Atom::coordShift(const double dt, const double* spaceLength, bool isZ_period
 }
 
 void Atom::velShift(const double dt) {
-    for (size_t i = 0; i < 3; ++i)
+    for (size_t i = 0; i < 3; ++i) {
+        vel2[i] = vel[i];
+        // vel[i] = velHalf[i] + power[i] * dt / m / 2;
         vel[i] += power[i] * dt / m;
+    }
+}
+
+void Atom::velHalfShift(const double dt) {
+    for (size_t i = 0; i < 3; ++i)
+        velHalf[i] = vel[i] + power[i] * dt / m / 2;
 }
 
 double Atom::kinEnergy() {
@@ -81,23 +90,51 @@ void Atom::powerLJ(Atom* atProb, const double* shift, bool oneCell) {
     }
 } 
 
+double Atom::kinVib(const double* shift) {
+    double* line = new double[3];
+    for (size_t i = 0; i < 3; ++i) 
+        line[i] = coord[i] - atMolN2->coord[i] - shift[i];
+    double* velRel = new double[3];
+    for (size_t i = 0; i < 3; ++i) 
+        // velRel[i] = vel[i] - (vel[i] + atMolN2->vel[i]) / 2;
+        velRel[i] = (vel[i] +  vel2[i]) / 2 - ((vel[i] +  vel2[i]) / 2 + (atMolN2->vel[i] + atMolN2->vel2[i]) / 2) / 2;
+
+    double vRel = Utils::scalProd(velRel, line) / sqrt(Utils::scalProd(line, line));
+    // std::cout << sqrt(Utils::scalProd(velRel, velRel)) << " " << std::abs(vRel) << std::endl;
+    delete[] line;
+    delete[] velRel;
+    return m * vRel * vRel;
+}
+
 void Atom::powerKX(Atom* atProb, const double* shift, bool oneCell) {
     double r = 0;
     for (size_t i = 0; i < 3; ++i) r += (coord[i] - atProb->coord[i] - shift[i]) * (coord[i] - atProb->coord[i] - shift[i]);
     r = sqrt(r);
+    // std::cout << "r: " << r << std::endl;
     double force = KX_F(r);
     double potential = KX_P(r); 
+    double kinetical = kinVib(shift);
     eVib += potential;
+    testVib1 += potential;
+    eVib += kinetical;
+    testVib2 += kinetical;
     eRot += calcEnRot(shift);
     if (!oneCell) {
         atProb->eVib += potential;
+        atProb->testVib1 += potential;
+        atProb->eVib += kinetical;
+        atProb->testVib2 += kinetical;
         atProb->eRot += calcEnRot(shift);
     }
     for (size_t i = 0; i < 3; ++i) {
         power[i] += (coord[i] - atProb->coord[i] - shift[i]) / r * force; 
-        if (!oneCell)
+        // std::cout << power[i] << " ";
+        if (!oneCell) {
+            // std::cout << "WAR\n";
             atProb->power[i] -= (coord[i] - atProb->coord[i] - shift[i]) / r * force;
+        }
     }
+    // std::cout << std::endl;
 } 
 
 double Atom::calcEnRot(const double* shift) {
@@ -128,6 +165,7 @@ double Atom::calcEnRot(const double* shift) {
 }
 
 double Atom::calcEnVib(const double* shift) {
+    //need to fix
     double res(0);
     double r = 0;
     for (size_t ir = 0; ir < 3; ++ir) r += (coord[ir] - atMolN2->coord[ir] - shift[ir]) * (coord[ir] - atMolN2->coord[ir] - shift[ir]);
