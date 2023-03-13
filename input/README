@@ -13,7 +13,7 @@ initAtoms.inp:
   
 configInp:  
     N строчек.  
-    E_rot, E_tr, E_vib, alpha  
+    E_tr, E_rot, E_vib, alpha  
   
   
 new config:  

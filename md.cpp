@@ -67,15 +67,15 @@ int main(const int argc, char* argv[]) {
             space->vtkNum = 0;
             space->saveAvg = false;
 
-            while (!space->MDStep() && step < 1000) {
+            while (!space->MDStep() && step < 10000) {
                 // if (step % 100 == 0) {
                 //     auto tmp = std::chrono::steady_clock::now();
                 //     std::cout << "step: " << step << "  |  " << static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(tmp - start).count()) / 1000 << " sec" << std::endl;
                 // }
-                // if (step % 100 == 0) space->writeVTK(pars.getOutFile() + "_" + std::to_string(i) + "_" + std::to_string(j));
+                if (step % 100 == 0) space->writeVTK(pars.getOutFile() + "_" + std::to_string(i) + "_" + std::to_string(j));
                 ++step;
             }
-            // space->writeVTK(pars.getOutFile() + "_" + std::to_string(i) + "_" + std::to_string(j));
+            space->writeVTK(pars.getOutFile() + "_" + std::to_string(i) + "_" + std::to_string(j));
             double eV = 0, eR = 0, eT = 0;
             std::vector<double> vTmp(3, 0);
             if (!space->molsN2.empty()) {
