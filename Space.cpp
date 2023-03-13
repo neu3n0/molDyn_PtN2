@@ -320,7 +320,7 @@ int Space::MDStep() {
 
     std::cout << step << " ";
     std::cout << molsN2[0].atom[1]->coord[1] << " ";
-    std::cout << molsN2[0].atom[1]->vel[1] << " ";
+    std::cout << molsN2[0].atom[1]->vel2[1] << " ";
     std::cout << molsN2[0].atom[1]->power[1] << " ";
     std::cout << molsN2[0].atom[1]->eVib << " ";
     std::cout << molsN2[0].atom[0]->testVib1  << " ";
