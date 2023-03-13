@@ -236,8 +236,8 @@ int Space::MDStep() {
         molsN2[0].atom[0]->powerKX(molsN2[0].atom[1], a, false);
         for (size_t i = 0; i < 3; ++i) {
             molsN2[0].atom[0]->vel[i] += molsN2[0].atom[0]->power[i] * dt / 2 / molsN2[0].atom[0]->m;
-            molsN2[0].atom[0]->vel2[i] += molsN2[0].atom[0]->power[i] * (-dt) / 2 / molsN2[0].atom[0]->m;
             molsN2[0].atom[1]->vel[i] += molsN2[0].atom[1]->power[i] * dt / 2 / molsN2[0].atom[1]->m;
+            molsN2[0].atom[0]->vel2[i] += molsN2[0].atom[0]->power[i] * (-dt) / 2 / molsN2[0].atom[0]->m;
             molsN2[0].atom[1]->vel2[i] += molsN2[0].atom[1]->power[i] * (-dt) / 2 / molsN2[0].atom[1]->m;
         }
         delete[] a;
@@ -320,11 +320,11 @@ int Space::MDStep() {
 
     std::cout << step << " ";
     std::cout << molsN2[0].atom[1]->coord[1] << " ";
-    std::cout << molsN2[0].atom[1]->vel2[1] << " ";
+    std::cout << (molsN2[0].atom[1]->vel2[1]  + molsN2[0].atom[1]->vel[1]) / 2 << " ";
     std::cout << molsN2[0].atom[1]->power[1] << " ";
     std::cout << molsN2[0].atom[1]->eVib << " ";
-    std::cout << molsN2[0].atom[0]->testVib1  << " ";
-    std::cout << molsN2[0].atom[0]->testVib2  << " ";
+    std::cout << molsN2[0].atom[1]->testVib1  << " ";
+    std::cout << molsN2[0].atom[1]->testVib2  << " ";
     std::cout << molsN2[0].atom[1]->eRot << " ";
     std::cout << eT << " ";
     std::cout << std::endl;
