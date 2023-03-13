@@ -38,7 +38,7 @@ public:
 public:
     double coord[3]{0, 0, 0};
     double vel[3]{0, 0, 0};
-    double vel2[3]{0, 0, 0};
+    // double vel2[3]{0, 0, 0};
     double power[3]{0, 0, 0};
     double m{0};
     Atom* atMolN2{nullptr};

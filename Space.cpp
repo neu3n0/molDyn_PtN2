@@ -169,9 +169,9 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
     // std::cout << "ind: " << i << "  " << j << "  " << k << std::endl;
     if (i >= 0 && j >= 0 && k >= 0 && i < static_cast<int>(numberCellsX) && j < static_cast<int>(numberCellsY) && k < static_cast<int>(numberCellsZ)) {
         Atom* atom = new Atom(r1, vAbs1, MASS_FOR_N, 0);
-        for (size_t ii = 0; ii < 3; ++ii) {
-            atom->vel2[ii] = atom->vel[ii];
-        }
+        // for (size_t ii = 0; ii < 3; ++ii) {
+        //     atom->vel2[ii] = atom->vel[ii];
+        // }
         cells[i][j][k].atoms.push_back(atom);
         mol.atom[0] = atom;
     }
@@ -185,9 +185,9 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
     // std::cout << "ind: " << i << "  " << j << "  " << k << std::endl;
     if (i >= 0 && j >= 0 && k >= 0 && i < static_cast<int>(numberCellsX) && j < static_cast<int>(numberCellsY) && k < static_cast<int>(numberCellsZ)) {
         Atom* atom = new Atom(r2, vAbs2, MASS_FOR_N, 0);
-        for (size_t ii = 0; ii < 3; ++ii) {
-            atom->vel2[ii] = atom->vel[ii];
-        }
+        // for (size_t ii = 0; ii < 3; ++ii) {
+        //     atom->vel2[ii] = atom->vel[ii];
+        // }
         cells[i][j][k].atoms.push_back(atom);
         mol.atom[1] = atom;
     }
@@ -227,22 +227,22 @@ int Space::MDStep() {
     resetChecker();
     if (saveAvg) saveAvgEn();
 
-    static int t = 0;
-    if (t == 0) {
-        double* a = new double[3];
-        a[0] = 0;
-        a[1] = 0;
-        a[2] = 0;
-        molsN2[0].atom[0]->powerKX(molsN2[0].atom[1], a, false);
-        for (size_t i = 0; i < 3; ++i) {
-            molsN2[0].atom[0]->vel[i] += molsN2[0].atom[0]->power[i] * dt / 2 / molsN2[0].atom[0]->m;
-            molsN2[0].atom[0]->vel2[i] += molsN2[0].atom[0]->power[i] * (-dt) / 2 / molsN2[0].atom[0]->m;
-            molsN2[0].atom[1]->vel[i] += molsN2[0].atom[1]->power[i] * dt / 2 / molsN2[0].atom[1]->m;
-            molsN2[0].atom[1]->vel2[i] += molsN2[0].atom[1]->power[i] * (-dt) / 2 / molsN2[0].atom[1]->m;
-        }
-        delete[] a;
-    }
-    ++t;
+    // static int t = 0;
+    // if (t == 0) {
+    //     double* a = new double[3];
+    //     a[0] = 0;
+    //     a[1] = 0;
+    //     a[2] = 0;
+    //     molsN2[0].atom[0]->powerKX(molsN2[0].atom[1], a, false);
+    //     for (size_t i = 0; i < 3; ++i) {
+    //         molsN2[0].atom[0]->vel[i] += molsN2[0].atom[0]->power[i] * dt / 2 / molsN2[0].atom[0]->m;
+    //         molsN2[0].atom[0]->vel2[i] += molsN2[0].atom[0]->power[i] * (-dt) / 2 / molsN2[0].atom[0]->m;
+    //         molsN2[0].atom[1]->vel[i] += molsN2[0].atom[1]->power[i] * dt / 2 / molsN2[0].atom[1]->m;
+    //         molsN2[0].atom[1]->vel2[i] += molsN2[0].atom[1]->power[i] * (-dt) / 2 / molsN2[0].atom[1]->m;
+    //     }
+    //     delete[] a;
+    // }
+    // ++t;
 
     int turnOff = 0;
     for (size_t i = 0; i < numberCellsX; ++i)
