@@ -47,8 +47,12 @@ int Atom::coordShift(const double dt, const double* spaceLength, bool isZ_period
 }
 
 void Atom::velShift(const double dt) {
-    for (size_t i = 0; i < 3; ++i)
+    // for (size_t i = 0; i < 3; ++i)
+    //     vel[i] += power[i] * dt / m;
+    for (size_t i = 0; i < 3; ++i) {
+        vel2[i] = vel[i];
         vel[i] += power[i] * dt / m;
+    }
 }
 
 double Atom::kinEnergy() {
@@ -80,19 +84,34 @@ void Atom::powerLJ(Atom* atProb, const double* shift, bool oneCell) {
     }
 } 
 
+// double Atom::kinVib(const double* shift) {
+//     double* line = new double[3];
+//     for (size_t i = 0; i < 3; ++i) 
+//         line[i] = coord[i] - atMolN2->coord[i] - shift[i];
+//     double* velRel = new double[3];
+//     for (size_t i = 0; i < 3; ++i) 
+//         velRel[i] = vel[i] - (vel[i] + atMolN2->vel[i]) / 2;
+
+//     double vRel = Utils::scalProd(velRel, line) / sqrt(Utils::scalProd(line, line));
+//     delete[] line;
+//     delete[] velRel;
+//     return m * vRel * vRel;
+// }
+
 double Atom::kinVib(const double* shift) {
     double* line = new double[3];
     for (size_t i = 0; i < 3; ++i) 
         line[i] = coord[i] - atMolN2->coord[i] - shift[i];
     double* velRel = new double[3];
     for (size_t i = 0; i < 3; ++i) 
-        velRel[i] = vel[i] - (vel[i] + atMolN2->vel[i]) / 2;
+        velRel[i] = (vel[i] +  vel2[i]) / 2 - ((vel[i] +  vel2[i]) / 2 + (atMolN2->vel[i] + atMolN2->vel2[i]) / 2) / 2;
 
     double vRel = Utils::scalProd(velRel, line) / sqrt(Utils::scalProd(line, line));
     delete[] line;
     delete[] velRel;
     return m * vRel * vRel;
 }
+
 
 void Atom::powerKX(Atom* atProb, const double* shift, bool oneCell) {
     double r = 0;
@@ -106,6 +125,8 @@ void Atom::powerKX(Atom* atProb, const double* shift, bool oneCell) {
     if (!oneCell) {
         atProb->eVib += vib;
         atProb->eRot += rot;
+        atProb->testVib1 += testVib1;
+        atProb->testVib2 += testVib2;
     }
     for (size_t i = 0; i < 3; ++i) {
         power[i] += (coord[i] - atProb->coord[i] - shift[i]) / r * force; 
