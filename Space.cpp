@@ -318,15 +318,16 @@ int Space::MDStep() {
     //         + pow(molsN2[0].atom[0]->coord[2] - molsN2[0].atom[1]->coord[2], 2);
     // std::cout << step << " " << Rr << " " << molsN2[0].atom[0]->eVib / KB << " " << molsN2[0].atom[0]->eRot / KB << " " << eT / KB << std::endl;
 
-    std::cout << step << " ";
+    // std::cout << step << " ";
     std::cout << molsN2[0].atom[1]->coord[1] << " ";
     std::cout << (molsN2[0].atom[1]->vel2[1]  + molsN2[0].atom[1]->vel[1]) / 2 << " ";
-    std::cout << molsN2[0].atom[1]->power[1] << " ";
-    std::cout << molsN2[0].atom[1]->eVib << " ";
+    std::cout << eT << " ";
     std::cout << molsN2[0].atom[1]->testVib1  << " ";
     std::cout << molsN2[0].atom[1]->testVib2  << " ";
-    std::cout << molsN2[0].atom[1]->eRot << " ";
-    std::cout << eT << " ";
+    std::cout << molsN2[0].atom[1]->eVib << " ";
+    // std::cout << molsN2[0].atom[1]->power[1] << " ";
+    // std::cout << molsN2[0].atom[1]->eRot << " ";
+    // std::cout << eT << " ";
     std::cout << std::endl;
     ++step;
 
