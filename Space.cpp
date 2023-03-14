@@ -104,8 +104,8 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
         r1[i] += rC[i];
         r2[i] += rC[i];
     }
-    r1 = {2, - Constants::bondR0 / 2 - Constants::bondR0 / 40 , 2};
-    r2 = {2, Constants::bondR0 / 2 + Constants::bondR0 / 40, 2};
+    r1 = {2, - Constants::bondR0 / 2  , 2};
+    r2 = {2, Constants::bondR0 / 2 , 2};
     // r1 = {20.6722, 15.1982, 33.0334};
     // r2 = {21.1571, 14.9624, 33.9666};
     // std::cout << "rC: " <<  (r1[0] + r2[0]) / 2 << ", " << (r1[1] + r2[1]) / 2 << ", " << (r1[2] + r2[2]) / 2 << std::endl; 
@@ -149,8 +149,8 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
     // std::cout << "vAbs1: " << vAbs1[0] << " " << vAbs1[1] << " " << vAbs1[2] << std::endl;
     // std::cout << "vAbs2: " << vAbs2[0] << " " << vAbs2[1] << " " << vAbs2[2] << std::endl;
     // std::cout << "vC: " << (vAbs1[0] + vAbs2[0]) / 2 << " " << (vAbs1[1] + vAbs2[1]) / 2 << " " << (vAbs1[2] + vAbs2[2]) / 2 << std::endl; 
-    vAbs1 = {0, 0, 0};
-    vAbs2 = {0, 0, 0}; 
+    vAbs1 = {0, 30, 0};
+    vAbs2 = {0, -30, 0}; 
     // std::vector<double> wW(3);
     // wW = Utils::vecProd(e1, v1);
     // wW[0] /= Utils::scalProd(e1, e1);

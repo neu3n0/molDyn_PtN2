@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -O0 -fopenmp -Wall -pedantic -Wextra -Weffc++ -std=c++17 -Wshadow 
+CXXFLAGS = -O3 -fopenmp -Wall -pedantic -Wextra -Weffc++ -std=c++17 -Wshadow 
 
 md: md.cpp Parser.o Atom.o Space.o Outer.o Utils.o
 	$(CXX) $(CXXFLAGS) $< Atom.o Space.o Parser.o Outer.o Utils.o -o$@
