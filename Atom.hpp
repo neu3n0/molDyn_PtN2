@@ -60,6 +60,6 @@ public:
 };
 
 double LJ_F(const double r, const int type1, const int type2);
-double LJ_P(const double r, const int type1, const int type2);
+double LJ_P(const double r2, const int type1, const int type2);
 double KX_F(const double r);
 double KX_P(const double r);
