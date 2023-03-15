@@ -233,9 +233,9 @@ int Space::MDStep() {
         a[0] = 0;
         a[1] = 0;
         a[2] = 0;
-        std::cout << "----------\n";
+        // std::cout << "----------\n";
         molsN2[0].atom[0]->powerKX(molsN2[0].atom[1], a, true);
-        std::cout << "----------\n";
+        // std::cout << "----------\n";
         for (size_t i = 0; i < 3; ++i) {
             molsN2[0].atom[0]->vel[i] += molsN2[0].atom[0]->power[i] * dt / 2 / molsN2[0].atom[0]->m;
             molsN2[0].atom[1]->vel[i] += molsN2[0].atom[1]->power[i] * dt / 2 / molsN2[0].atom[1]->m;
@@ -281,11 +281,10 @@ int Space::MDStep() {
                                 if (j3 < 0) { j3 = numberCellsY - 1;     shift[1] = -spaceLength[1]; }
                                 if (k3 < 0) { k3 = numberCellsZ - 1;     shift[2] = -spaceLength[2]; }
                                 for (size_t indAt2 = 0; indAt2 < cells[i3][j3][k3].atoms.size(); ++indAt2) {
-                                    std::cout << "size: " << cells[i][j][k].atoms.size() << " " << cells[i3][j3][k3].atoms.size() 
-                                    << " | " << i << ' ' << j << ' ' << k << " | " << i3 << ' ' << j3 << ' ' << k3
-                                    << " | " << indAt << " " << indAt2
-                                    << std::endl;
-
+                                    // std::cout << "size: " << cells[i][j][k].atoms.size() << " " << cells[i3][j3][k3].atoms.size() 
+                                    // << " | " << i << ' ' << j << ' ' << k << " | " << i3 << ' ' << j3 << ' ' << k3
+                                    // << " | " << indAt << " " << indAt2
+                                    // << std::endl;
                                     if (i3 == i && j3 == j && k3 == k && indAt == indAt2) continue;
                                     bool w = false;
                                     if (i3 == i && j3 == j && k3 == k) w = true;

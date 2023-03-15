@@ -114,18 +114,15 @@ double Atom::kinVib(const double* shift) {
 
 
 void Atom::powerKX(Atom* atProb, const double* shift, bool oneCell) {
-    std::cout << "in\n";
     double r = 0;
     for (size_t i = 0; i < 3; ++i) r += (coord[i] - atProb->coord[i] - shift[i]) * (coord[i] - atProb->coord[i] - shift[i]);
     r = sqrt(r);
     double force = KX_F(r);
     double vib = calcEnVib(shift, r);
     double rot = calcEnRot(shift);
-    std::cout << "vib, rot: " << vib << " " << rot << std::endl;
     eVib += vib;
     eRot += rot;
     if (!oneCell) {
-        std::cout << "wtf   " << std::endl;
         atProb->eVib += vib;
         atProb->eRot += rot;
         atProb->testVib1 += testVib1;
