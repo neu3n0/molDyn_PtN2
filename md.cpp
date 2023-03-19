@@ -67,7 +67,7 @@ int main(const int argc, char* argv[]) {
             space->vtkNum = 0;
             space->saveAvg = false;
 
-            while (!space->MDStep() && step < 10000) {
+            while (!space->MDStep() && step < 1000) {
                 // if (step % 100 == 0) {
                 //     auto tmp = std::chrono::steady_clock::now();
                 //     std::cout << "step: " << step << "  |  " << static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(tmp - start).count()) / 1000 << " sec" << std::endl;
