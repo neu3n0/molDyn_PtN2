@@ -67,20 +67,21 @@ bool Atom::checkCell(const size_t i0, const size_t j0, const size_t k0, size_t& 
     return false;
 }
 
-void Atom::powerLJ(Atom* atProb, const double* shift, bool oneCell) {
-    double r = 0;
+void Atom::powerLJ(Atom* atProb, const double* shift) {
+    double r2 = 0;
     for (size_t i = 0; i < 3; ++i) 
-        r += (coord[i] - atProb->coord[i] - shift[i]) * (coord[i] - atProb->coord[i] - shift[i]);
-    r = sqrt(r);
-    double force = LJ_F(r, type, atProb->type);
-    double potential = LJ_P(r, type, atProb->type);
+        r2 += (coord[i] - atProb->coord[i] - shift[i]) * (coord[i] - atProb->coord[i] - shift[i]);
+    double r = sqrt(r);
+    double force = LJ_F(r, r2, type, atProb->type);
+    double potential = LJ_P(r2, type, atProb->type);
+
     ljEn += potential;
-    if (!oneCell)
-        atProb->ljEn += potential;
+    atProb->ljEn += potential;
+
     for (size_t i = 0; i < 3; ++i) {
-        power[i] += (coord[i] - atProb->coord[i] - shift[i]) / r * force;
-        if (!oneCell)
-            atProb->power[i] -= (coord[i] - atProb->coord[i] - shift[i]) / r * force;
+        double tmp = (coord[i] - atProb->coord[i] - shift[i]) / r * force;
+        power[i] += tmp;
+        atProb->power[i] -= tmp;
     }
 } 
 
@@ -112,35 +113,37 @@ double Atom::kinVib() {
     return m * vRel * vRel;
 }
 
-void Atom::powerKX(Atom* atProb, const double* shift, bool oneCell) {
+void Atom::powerKX(Atom* atProb, const double* shift) {
     double r = 0;
     for (size_t i = 0; i < 3; ++i) r += (coord[i] - atProb->coord[i] - shift[i]) * (coord[i] - atProb->coord[i] - shift[i]);
     r = sqrt(r);
     double force = KX_F(r);
+    // std::cout << "r: " << r << " " << "kx_f: " << force << std::endl;
     double vib = KX_P(r);
-    testVib1 += vib;
     double rot = calcEnRot(shift);
+
     eVib += vib;
     eRot += rot;
-    if (!oneCell) {
-        atProb->eVib += vib;
-        atProb->eRot += rot;
-        atProb->testVib1 += testVib1;
-    }
+    testVib1 += vib;
+
+    atProb->eVib += vib;
+    atProb->eRot += rot;
+    atProb->testVib1 += vib;
+
     for (size_t i = 0; i < 3; ++i) {
-        power[i] += (coord[i] - atProb->coord[i] - shift[i]) / r * force; 
-        if (!oneCell)
-            atProb->power[i] -= (coord[i] - atProb->coord[i] - shift[i]) / r * force;
+        double tmp = (coord[i] - atProb->coord[i] - shift[i]) / r * force;
+        power[i] += tmp;
+        atProb->power[i] -= tmp;
     }
 }
 
-double Atom::calcEnVib(const double* shift, const double r) {
-    double potential = KX_P(r); 
-    // double kinetical = kinVib(shift);
-    testVib1 += potential;
-    // testVib2 += kinetical;
-    return potential;
-}
+// double Atom::calcEnVib(const double* shift, const double r) {
+//     double potential = KX_P(r); 
+//     // double kinetical = kinVib(shift);
+//     testVib1 += potential;
+//     // testVib2 += kinetical;
+//     return potential;
+// }
 
 double Atom::calcEnRot(const double* shift) {
     double vC[3];
@@ -169,14 +172,19 @@ double Atom::calcEnRot(const double* shift) {
     return res;
 }
 
-double LJ_F(const double r, const int type1, const int type2) {
-    return 24 * Constants::ljEps[type1][type2] * (2 * Constants::ljSigma12[type1][type2] / pow(r, 13) 
-        - Constants::ljSigma6[type1][type2] / pow(r, 7));
+double LJ_F(const double r, const double r2, const int type1, const int type2) {
+    const double r6 = r2 * r2 * r2;
+    const double r7 = r6 * r;
+    const double r13 = r6 * r6 * r; 
+    return 24 * Constants::ljEps[type1][type2] * (2 * Constants::ljSigma12[type1][type2] / r13 
+        - Constants::ljSigma6[type1][type2] / r7);
 }
 
-double LJ_P(const double r, const int type1, const int type2) {
-    return 4 * Constants::ljEps[type1][type2] * (Constants::ljSigma12[type1][type2] / pow(r, 12) 
-        - Constants::ljSigma6[type1][type2] / pow(r, 6));
+double LJ_P(const double r2, const int type1, const int type2) {
+    const double r6 = r2 * r2 * r2;
+    const double r12 = r6 * r6;
+    return 4 * Constants::ljEps[type1][type2] * (Constants::ljSigma12[type1][type2] / r12
+        - Constants::ljSigma6[type1][type2] / r6);
 }
 
 double KX_F(const double r) {
