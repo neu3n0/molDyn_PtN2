@@ -21,6 +21,11 @@ public:
 	bool initFromEnergy(std::istream& inp);
 	bool initFromEnergy(const std::string& fname);
 	bool initFromParams(const double E_tr, const double E_rot, const double E_vib, const double alpha);
+	std::vector<double> initFromCoordsAndVel(
+        const std::vector<double>& r1, 
+            const std::vector<double>& r2, 
+                const std::vector<double>& vAbs1, 
+                    const std::vector<double>& vAbs2);
 public:
 	void printConfig() const;
 	void printInit() const;
