@@ -31,7 +31,7 @@ int main(const int argc, char* argv[]) {
     
     auto wholeStart = std::chrono::steady_clock::now();
 
-    size_t N = 1;
+    size_t N = 200;
     for (size_t i = 0; i < E_tr.size(); ++i) {
         size_t countBadCalcs = 0;
         // std::cout << E_tr[i] << "  " << E_rot[i] << "  " << E_vib[i] << " " << alpha[i] << std::endl;
@@ -58,16 +58,19 @@ int main(const int argc, char* argv[]) {
             std::vector<double> startInf = {
                 space->molsN2[0].atom[0]->coord[0], space->molsN2[0].atom[0]->coord[1], space->molsN2[0].atom[0]->coord[2],
                 space->molsN2[0].atom[1]->coord[0], space->molsN2[0].atom[1]->coord[1], space->molsN2[0].atom[1]->coord[2],
-                space->molsN2[0].atom[0]->vel[0], space->molsN2[0].atom[0]->vel[1], space->molsN2[0].atom[0]->vel[2], 
-                space->molsN2[0].atom[1]->vel[0], space->molsN2[0].atom[1]->vel[1], space->molsN2[0].atom[1]->vel[2]
+                ((space->molsN2[0].atom[0]->vel[0] + space->molsN2[0].atom[0]->vel2[0]) / 2),
+                (space->molsN2[0].atom[0]->vel[1] + space->molsN2[0].atom[0]->vel2[1]) / 2,
+                (space->molsN2[0].atom[0]->vel[2] + space->molsN2[0].atom[0]->vel2[2]) / 2, 
+                (space->molsN2[0].atom[1]->vel[0] + space->molsN2[0].atom[1]->vel2[0]) / 2,
+                (space->molsN2[0].atom[1]->vel[1] + space->molsN2[0].atom[1]->vel2[1]) / 2,
+                (space->molsN2[0].atom[1]->vel[2] + space->molsN2[0].atom[1]->vel2[2]) / 2
             };
 
             size_t step = 0;
             auto start = std::chrono::steady_clock::now();
             space->vtkNum = 0;
             space->saveAvg = false;
-
-            while (!space->MDStep() && step < 1000) {
+            while (!space->MDStep() && step < MAXSTEPS) {
                 // if (step % 100 == 0) {
                 //     auto tmp = std::chrono::steady_clock::now();
                 //     std::cout << "step: " << step << "  |  " << static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(tmp - start).count()) / 1000 << " sec" << std::endl;

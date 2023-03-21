@@ -71,10 +71,9 @@ void Atom::powerLJ(Atom* atProb, const double* shift) {
     double r2 = 0;
     for (size_t i = 0; i < 3; ++i) 
         r2 += (coord[i] - atProb->coord[i] - shift[i]) * (coord[i] - atProb->coord[i] - shift[i]);
-    double r = sqrt(r);
+    double r = sqrt(r2);
     double force = LJ_F(r, r2, type, atProb->type);
     double potential = LJ_P(r2, type, atProb->type);
-
     ljEn += potential;
     atProb->ljEn += potential;
 
@@ -176,7 +175,7 @@ double LJ_F(const double r, const double r2, const int type1, const int type2) {
     const double r6 = r2 * r2 * r2;
     const double r7 = r6 * r;
     const double r13 = r6 * r6 * r; 
-    return 24 * Constants::ljEps[type1][type2] * (2 * Constants::ljSigma12[type1][type2] / r13 
+    return 24 * Constants::ljEps[type1][type2] * (2 * Constants::ljSigma12[type1][type2] / r13
         - Constants::ljSigma6[type1][type2] / r7);
 }
 
