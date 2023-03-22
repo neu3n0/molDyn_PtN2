@@ -47,8 +47,6 @@ int Atom::coordShift(const double dt, const double* spaceLength, bool isZ_period
 }
 
 void Atom::velShift(const double dt) {
-    // for (size_t i = 0; i < 3; ++i)
-    //     vel[i] += power[i] * dt / m;
     for (size_t i = 0; i < 3; ++i) {
         vel2[i] = vel[i];
         vel[i] += power[i] * dt / m;
@@ -117,7 +115,6 @@ void Atom::powerKX(Atom* atProb, const double* shift) {
     for (size_t i = 0; i < 3; ++i) r += (coord[i] - atProb->coord[i] - shift[i]) * (coord[i] - atProb->coord[i] - shift[i]);
     r = sqrt(r);
     double force = KX_F(r);
-    // std::cout << "r: " << r << " " << "kx_f: " << force << std::endl;
     double vib = KX_P(r);
     double rot = calcEnRot(shift);
 
@@ -149,7 +146,7 @@ double Atom::calcEnRot(const double* shift) {
     double xC[3];
     double res(0);
     for (size_t i = 0; i < 3; ++i) {
-        vC[i] = (vel[i] + atMolN2->vel[i]) / 2;
+        vC[i] = ((vel[i] + vel2[i]) / 2 + (atMolN2->vel[i] + atMolN2->vel2[i]) / 2) / 2;
         xC[i] = (coord[i] + atMolN2->coord[i] - shift[i]) / 2;
     }
     double e1[3];
@@ -158,7 +155,7 @@ double Atom::calcEnRot(const double* shift) {
         e1[i] = coord[i] - xC[i];
         if (shift[i] != 0 and std::abs(e1[i]) > 4)
             e1[i] = coord[i] - xC[i] - shift[i];
-        v[i] = vel[i] - vC[i];
+        v[i] = (vel[i] + vel2[i]) / 2 - vC[i];
     }
     double I = 2 * m * Utils::scalProd(e1, e1);
     std::vector<double> w(3);

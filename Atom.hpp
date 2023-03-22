@@ -51,7 +51,7 @@ public:
     double eRot{0};
     double eVib{0};
     double calcEnRot(const double* shift);
-    double calcEnVib(const double* shift, const double r);
+    // double calcEnVib(const double* shift, const double r);
 };
 
 class MoleculeN2 {

@@ -360,33 +360,6 @@ int Space::MDStep() {
         mol.atom[1]->eVib += kin;
     }
 
-
-
-    double eT = 0;
-    std::vector<double> vTmp(3, 0);
-    for (size_t in = 0; in < 3; ++in)
-        vTmp[in] = (molsN2[0].atom[0]->vel[in] + molsN2[0].atom[1]->vel[in]) / 2.0;
-    for (size_t in = 0; in < 3; ++in) eT += vTmp[in] * vTmp[in];
-    eT *= MASS_FOR_N; 
-    static int step = 1;
-    // double Rr = pow(molsN2[0].atom[0]->coord[0] - molsN2[0].atom[1]->coord[0], 2) 
-    //     + pow(molsN2[0].atom[0]->coord[1] - molsN2[0].atom[1]->coord[1], 2) 
-    //         + pow(molsN2[0].atom[0]->coord[2] - molsN2[0].atom[1]->coord[2], 2);
-    // std::cout << step << " " << Rr << " " << molsN2[0].atom[0]->eVib / KB << " " << molsN2[0].atom[0]->eRot / KB << " " << eT / KB << std::endl;
-
-    // std::cout << step << " ";
-    // std::cout << molsN2[0].atom[1]->coord[1] << " ";
-    // std::cout << (molsN2[0].atom[1]->vel2[1] + molsN2[0].atom[1]->vel[1]) / 2 << " ";
-    // std::cout << molsN2[0].atom[1]->testVib2  << " ";
-    // std::cout << molsN2[0].atom[1]->testVib1  << " ";
-    // std::cout << molsN2[0].atom[1]->eVib << " ";
-    // std::cout << molsN2[0].atom[1]->power[1] / MASS_FOR_N << " ";
-    // std::cout << molsN2[0].atom[1]->eRot << " ";
-    // std::cout << eT << " ";
-    // std::cout << Rr << " ";
-    // std::cout << std::endl;
-    ++step;
-
     if (turnOff) return 1;
     return 0;
 }
@@ -429,23 +402,11 @@ void Space::resetChecker() {
 
 
 void Space::saveAvgEn() {
-    // double eT = 0;
-    // std::vector<double> vTmp(3, 0);
-    // for (size_t in = 0; in < 3; ++in)
-    //     vTmp[in] = (molsN2[0].atom[0]->vel[in] + molsN2[0].atom[1]->vel[in]) / 2.0;
-
-    // for (size_t in = 0; in < 3; ++in) eT += vTmp[in] * vTmp[in];
-    // eT *= MASS_FOR_N; 
-
-    // double Rr = pow(molsN2[0].atom[0]->coord[0] - molsN2[0].atom[1]->coord[0], 2) 
-        // + pow(molsN2[0].atom[0]->coord[1] - molsN2[0].atom[1]->coord[1], 2) 
-            // + pow(molsN2[0].atom[0]->coord[2] - molsN2[0].atom[1]->coord[2], 2);
-    if (indAvg < 144) {
+    if (indAvg < 14) {
         avgVibEn += molsN2[0].atom[0]->eVib / KB;
         avgRotEn += molsN2[0].atom[0]->eRot / KB;
     }
     ++indAvg;
-    // std::cout << molsN2[0].atom[0]->eVib / KB << " " << molsN2[0].atom[0]->eRot / KB << " ";
 }
 
 void Space::printConfig() const {
