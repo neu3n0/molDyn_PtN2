@@ -29,12 +29,16 @@ public:
     int coordShift(const double dt, const double* spaceLength, bool isZ_periodic, const double hMax);
     void velShift(const double dt);
     bool checkCell(const size_t i0, const size_t j0, const size_t k0, size_t& i, size_t& j, size_t& k, const double lengthCell);
-    void powerLJ(Atom* atProb, const double* shift, bool);
-    void powerKX(Atom* atProb, const double* shift, bool);
+    void powerLJ(Atom* atProb, const double* shift);
+    void powerKX(Atom* atProb, const double* shift);
+    double kinVib();
     double kinEnergy();
+    double testVib1 = 0;
+    double testVib2 = 0;
 public:
     double coord[3]{0, 0, 0};
     double vel[3]{0, 0, 0};
+    double vel2[3]{0, 0, 0};
     double power[3]{0, 0, 0};
     double m{0};
     Atom* atMolN2{nullptr};
@@ -47,7 +51,7 @@ public:
     double eRot{0};
     double eVib{0};
     double calcEnRot(const double* shift);
-    double calcEnVib(const double* shift);
+    // double calcEnVib(const double* shift, const double r);
 };
 
 class MoleculeN2 {
@@ -55,7 +59,7 @@ public:
 	Atom* atom[2]{};
 };
 
-double LJ_F(const double r, const int type1, const int type2);
-double LJ_P(const double r, const int type1, const int type2);
+double LJ_F(const double r, const double r2, const int type1, const int type2);
+double LJ_P(const double r2, const int type1, const int type2);
 double KX_F(const double r);
 double KX_P(const double r);

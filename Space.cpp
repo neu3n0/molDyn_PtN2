@@ -31,6 +31,8 @@ void Space::init(std::istream& inp) {
         int k = static_cast<int>(coord[2] / lengthCell);
         if (i >= 0 && j >= 0 && k >= 0 && i < static_cast<int>(numberCellsX) && j < static_cast<int>(numberCellsY) && k < static_cast<int>(numberCellsZ)) {
             Atom* atom = new Atom(coord, vel, MASS_FOR_PT, 1);
+            for (size_t ii = 0; ii < 3; ++ii)
+                atom->vel2[ii] = atom->vel[ii];
             cells[i][j][k].atoms.push_back(atom);
         }
         else {
@@ -89,8 +91,6 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(1.1, 34.18);    // need change
-    // rC[0] = 45.0 * rand() / RAND_MAX;
-    // rC[1] = 45.0 * rand() / RAND_MAX;
     rC[0] = dis(gen);
     rC[1] = dis(gen);
     rC[2] = startHeight;
@@ -104,9 +104,10 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
         r1[i] += rC[i];
         r2[i] += rC[i];
     }
-
-    // r1 = {27.0127, 25.1292, 33.8232};
-    // r2 = {26.1671, 25.2988, 33.1768};
+    // r1 = {2, -Constants::bondR0 / 2 - Constants::bondR0 / 40  , 2};
+    // r2 = {2, Constants::bondR0 / 2 + Constants::bondR0 / 40, 2};
+    // r1 = {30.4352, 15.2025, 34.0064};
+    // r2 = {30.5754, 14.8615, 32.9936};
     // std::cout << "rC: " <<  (r1[0] + r2[0]) / 2 << ", " << (r1[1] + r2[1]) / 2 << ", " << (r1[2] + r2[2]) / 2 << std::endl; 
     // std::cout << "r1: " << r1[0] << " " << r1[1] << " " << r1[2] << std::endl;
     // std::cout << "r2: " << r2[0] << " " << r2[1] << " " << r2[2] << std::endl;
@@ -143,13 +144,13 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
         vAbs1[i] = vC[i] + v1[i];
         vAbs2[i] = vC[i] + v2[i];
     }
-      
-    // vAbs1 = {1794.02, 953.475, -2194.53};
-    // vAbs2 = {1070.14, 954.944, -1247.19};
+    // vAbs1 = {-296.151, -1021.18, -1780.72};
+    // vAbs2 = {-233.204, 109.764, -2152.83};
     // std::cout << "vAbs1: " << vAbs1[0] << " " << vAbs1[1] << " " << vAbs1[2] << std::endl;
     // std::cout << "vAbs2: " << vAbs2[0] << " " << vAbs2[1] << " " << vAbs2[2] << std::endl;
     // std::cout << "vC: " << (vAbs1[0] + vAbs2[0]) / 2 << " " << (vAbs1[1] + vAbs2[1]) / 2 << " " << (vAbs1[2] + vAbs2[2]) / 2 << std::endl; 
-
+    // vAbs1 = {0, 0, 0};
+    // vAbs2 = {0, 0, 0}; 
     // std::vector<double> wW(3);
     // wW = Utils::vecProd(e1, v1);
     // wW[0] /= Utils::scalProd(e1, e1);
@@ -161,6 +162,15 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
     // std::cout << "alpha: " << vC[2] / sqrt(vC[0] * vC[0] + vC[1] * vC[1]) << std::endl;
     // std::cout << "Etr: " << MASS_FOR_N * (vC[0] * vC[0] + vC[1] * vC[1] + vC[2] * vC[2]) / KB << std::endl;
 
+
+    double rrr = 0;
+    for (size_t i = 0; i < 3; ++i) rrr += (r1[i] - r2[i]) * (r1[i] - r2[i]);
+    rrr = sqrt(rrr);
+    double force = KX_F(rrr);
+    double power[3] = {0, 0, 0};
+    for (size_t i = 0; i < 3; ++i)
+        power[i] += (r1[i] - r2[i]) / rrr * force;
+
     MoleculeN2 mol;
     int i = static_cast<int>(r1[0] / lengthCell);
     int j = static_cast<int>(r1[1] / lengthCell);
@@ -168,6 +178,11 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
     // std::cout << "ind: " << i << "  " << j << "  " << k << std::endl;
     if (i >= 0 && j >= 0 && k >= 0 && i < static_cast<int>(numberCellsX) && j < static_cast<int>(numberCellsY) && k < static_cast<int>(numberCellsZ)) {
         Atom* atom = new Atom(r1, vAbs1, MASS_FOR_N, 0);
+        for (size_t ii = 0; ii < 3; ++ii) {
+            // atom->vel2[ii] = atom->vel[ii];
+            atom->vel2[ii] = atom->vel[ii] + power[ii] * (-dt) / 2 / MASS_FOR_N;
+            atom->vel[ii] += power[ii] * dt / 2 / MASS_FOR_N;
+        }
         cells[i][j][k].atoms.push_back(atom);
         mol.atom[0] = atom;
     }
@@ -181,6 +196,11 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
     // std::cout << "ind: " << i << "  " << j << "  " << k << std::endl;
     if (i >= 0 && j >= 0 && k >= 0 && i < static_cast<int>(numberCellsX) && j < static_cast<int>(numberCellsY) && k < static_cast<int>(numberCellsZ)) {
         Atom* atom = new Atom(r2, vAbs2, MASS_FOR_N, 0);
+        for (size_t ii = 0; ii < 3; ++ii) {
+            // atom->vel2[ii] = atom->vel[ii];
+            atom->vel2[ii] = atom->vel[ii] - power[ii] * (-dt) / 2 / MASS_FOR_N;
+            atom->vel[ii] -= power[ii] * dt / 2 / MASS_FOR_N;
+        }
         cells[i][j][k].atoms.push_back(atom);
         mol.atom[1] = atom;
     }
@@ -210,6 +230,67 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
     return true; 
 }
 
+std::vector<double> Space::initFromCoordsAndVel(
+        const std::vector<double>& r1, 
+            const std::vector<double>& r2, 
+                const std::vector<double>& vAbs1, 
+                    const std::vector<double>& vAbs2) {
+    double rrr = 0;
+    for (size_t i = 0; i < 3; ++i) rrr += (r1[i] - r2[i]) * (r1[i] - r2[i]);
+    rrr = sqrt(rrr);
+    double force = KX_F(rrr);
+    double power[3] = {0, 0, 0};
+    for (size_t i = 0; i < 3; ++i)
+        power[i] += (r1[i] - r2[i]) / rrr * force;
+
+    MoleculeN2 mol;
+    int i = static_cast<int>(r1[0] / lengthCell);
+    int j = static_cast<int>(r1[1] / lengthCell);
+    int k = static_cast<int>(r1[2] / lengthCell);
+    if (i >= 0 && j >= 0 && k >= 0 && i < static_cast<int>(numberCellsX) && j < static_cast<int>(numberCellsY) && k < static_cast<int>(numberCellsZ)) {
+        Atom* atom = new Atom(r1, vAbs1, MASS_FOR_N, 0);
+        for (size_t ii = 0; ii < 3; ++ii) {
+            atom->vel2[ii] = atom->vel[ii] + power[ii] * (-dt) / 2 / MASS_FOR_N;
+            atom->vel[ii] += power[ii] * dt / 2 / MASS_FOR_N;
+        }
+        cells[i][j][k].atoms.push_back(atom);
+        mol.atom[0] = atom;
+    }
+    else {
+        std::cout << "ind: " << i << " " << j << " " << k << std::endl;
+        throw std::runtime_error("Incorrect init data for N2");
+    }
+    i = static_cast<int>(r2[0] / lengthCell);
+    j = static_cast<int>(r2[1] / lengthCell);
+    k = static_cast<int>(r2[2] / lengthCell);
+    if (i >= 0 && j >= 0 && k >= 0 && i < static_cast<int>(numberCellsX) && j < static_cast<int>(numberCellsY) && k < static_cast<int>(numberCellsZ)) {
+        Atom* atom = new Atom(r2, vAbs2, MASS_FOR_N, 0);
+        for (size_t ii = 0; ii < 3; ++ii) {
+            atom->vel2[ii] = atom->vel[ii] - power[ii] * (-dt) / 2 / MASS_FOR_N;
+            atom->vel[ii] -= power[ii] * dt / 2 / MASS_FOR_N;
+        }
+        cells[i][j][k].atoms.push_back(atom);
+        mol.atom[1] = atom;
+    }
+    else {
+        std::cout << "ind: " << i << " " << j << " " << k << std::endl;
+        throw std::runtime_error("Incorrect init data for N2");
+    }
+    mol.atom[0]->atMolN2 = mol.atom[1];
+    mol.atom[1]->atMolN2 = mol.atom[0];
+    molsN2.push_back(mol);
+
+    double eTrr = 0;
+    for (size_t in = 0; in < 3; ++in)
+        eTrr += pow((molsN2[0].atom[0]->vel[in] + molsN2[0].atom[1]->vel[in]) / 2, 2);
+    eTrr *= MASS_FOR_N;
+    double ang = std::abs(atan2((molsN2[0].atom[0]->vel[2] + molsN2[0].atom[1]->vel[2]) / 2, sqrt(pow((molsN2[0].atom[0]->vel[1] + molsN2[0].atom[1]->vel[1]) / 2, 2) + pow((molsN2[0].atom[0]->vel[0] + molsN2[0].atom[1]->vel[0]) / 2, 2))) / M_PI * 180);
+    ang = 90 - ang;
+
+    return {eTrr / KB, calcRotEn() / KB, calcVibEn() / KB, ang}; 
+}
+
+
 bool Space::initFromEnergy(std::istream& inp) {
     double E_tr = 0, E_rot = 0, E_vib = 0, alpha = 0;
     inp >> E_tr >> E_rot >> E_vib >> alpha;
@@ -218,6 +299,7 @@ bool Space::initFromEnergy(std::istream& inp) {
 
 int Space::MDStep() {
     resetChecker();
+    if (saveAvg) saveAvgEn();
 
     int turnOff = 0;
     for (size_t i = 0; i < numberCellsX; ++i)
@@ -254,47 +336,30 @@ int Space::MDStep() {
                                 if (j3 < 0) { j3 = numberCellsY - 1;     shift[1] = -spaceLength[1]; }
                                 if (k3 < 0) { k3 = numberCellsZ - 1;     shift[2] = -spaceLength[2]; }
                                 for (size_t indAt2 = 0; indAt2 < cells[i3][j3][k3].atoms.size(); ++indAt2) {
-                                    if (i3 == i && j3 == j && k3 == k && indAt == indAt2) continue;
-                                    bool w = false;
-                                    if (i3 == i && j3 == j && k3 == k) w = true;
+                                    if (i3 == i && j3 == j && k3 == k && indAt >= indAt2) continue;
                                     if (cells[i][j][k].atoms[indAt]->atMolN2 != cells[i3][j3][k3].atoms[indAt2])
-                                        cells[i][j][k].atoms[indAt]->powerLJ(cells[i3][j3][k3].atoms[indAt2], shift, w);
-                                    else {
-                                        cells[i][j][k].atoms[indAt]->powerKX(cells[i3][j3][k3].atoms[indAt2], shift, w);
-                                    }
+                                        cells[i][j][k].atoms[indAt]->powerLJ(cells[i3][j3][k3].atoms[indAt2], shift);
+                                    else
+                                        cells[i][j][k].atoms[indAt]->powerKX(cells[i3][j3][k3].atoms[indAt2], shift);
                                 }
                             }
-    
+
 
     for (size_t i = 0; i < numberCellsX; ++i) 
         for (size_t j = 0; j < numberCellsY; ++j)
             for (size_t k = 0; k < numberCellsZ; ++k) 
-                for (size_t indAt = 0; indAt < cells[i][j][k].atoms.size(); ++indAt) {
+                for (size_t indAt = 0; indAt < cells[i][j][k].atoms.size(); ++indAt)
                     cells[i][j][k].atoms[indAt]->velShift(dt);
-                    // potEn += cells[i][j][k].atoms[indAt]->kxEn;
-                    // potEn += cells[i][j][k].atoms[indAt]->ljEn;
-                    // kinEn += cells[i][j][k].atoms[indAt]->kinEnergy();
-                }
     
+    
+    for (auto& mol : molsN2) {
+        double kin = mol.atom[0]->kinVib();
+        mol.atom[0]->testVib2 += kin;
+        mol.atom[1]->testVib2 += kin;
+        mol.atom[0]->eVib += kin;
+        mol.atom[1]->eVib += kin;
+    }
 
-
-    // potEn /= 2;
-    // energy = kinEn + potEn + vibEn;
-
-    // double eT = 0;
-    // std::vector<double> vTmp(3, 0);
-    // for (size_t in = 0; in < 3; ++in)
-    //     vTmp[in] = (molsN2[0].atom[0]->vel[in] + molsN2[0].atom[1]->vel[in]) / 2.0;
-
-    // for (size_t in = 0; in < 3; ++in) eT += vTmp[in] * vTmp[in];
-    // eT *= MASS_FOR_N / KB; 
-
-    // static int step = 1;
-    // double Rr = pow(molsN2[0].atom[0]->coord[0] - molsN2[0].atom[1]->coord[0], 2) 
-    //     + pow(molsN2[0].atom[0]->coord[1] - molsN2[0].atom[1]->coord[1], 2) 
-    //         + pow(molsN2[0].atom[0]->coord[2] - molsN2[0].atom[1]->coord[2], 2);
-    // std::cout << step << " " << Rr << " " << molsN2[0].atom[0]->eVib / KB << " " << molsN2[0].atom[0]->eRot / KB << " " << eT << std::endl;
-    // ++step;
     if (turnOff) return 1;
     return 0;
 }
@@ -322,6 +387,8 @@ void Space::SetNullMacro() {
                     cells[i][j][k].atoms[indAt]->ljEn = 0;
                     cells[i][j][k].atoms[indAt]->eRot = 0;
                     cells[i][j][k].atoms[indAt]->eVib = 0;
+                    cells[i][j][k].atoms[indAt]->testVib1 = 0;
+                    cells[i][j][k].atoms[indAt]->testVib2 = 0;                    
                 }
 }
 
@@ -333,6 +400,14 @@ void Space::resetChecker() {
                     cells[i][j][k].atoms[indAt]->was = false;    
 }
 
+
+void Space::saveAvgEn() {
+    if (indAvg < 14) {
+        avgVibEn += molsN2[0].atom[0]->eVib / KB;
+        avgRotEn += molsN2[0].atom[0]->eRot / KB;
+    }
+    ++indAvg;
+}
 
 void Space::printConfig() const {
     std::cout << countMolN2 << std::endl <<
@@ -488,13 +563,29 @@ double Space::calcRotEn() {
     return res;
 }
 
+double Space::calcKinVib() {
+    double* line = new double[3];
+    for (size_t i = 0; i < 3; ++i) 
+        line[i] = molsN2[0].atom[0]->coord[i] - molsN2[0].atom[1]->coord[i];
+    double* velRel = new double[3];
+    for (size_t i = 0; i < 3; ++i) 
+        velRel[i] = (molsN2[0].atom[0]->vel[i] +molsN2[0].atom[0]->vel2[i]) / 2 - ((molsN2[0].atom[0]->vel[i] + molsN2[0].atom[0]->vel2[i]) / 2 + (molsN2[0].atom[1]->vel[i] + molsN2[0].atom[1]->vel2[i]) / 2) / 2;
+
+    double vRel = Utils::scalProd(velRel, line) / sqrt(Utils::scalProd(line, line));
+    delete[] line;
+    delete[] velRel;
+    return molsN2[0].atom[0]->m * vRel * vRel;
+}
+
 double Space::calcVibEn() {
-    double res(0);
+    double res{0};
     if (!molsN2.empty()) {
         double r = 0;
         for (size_t ir = 0; ir < 3; ++ir) r += (molsN2[0].atom[0]->coord[ir] - molsN2[0].atom[1]->coord[ir]) * (molsN2[0].atom[0]->coord[ir] - molsN2[0].atom[1]->coord[ir]);
         r = sqrt(r);
-        res = KX_P(r);
+        double potential = KX_P(r); 
+        double kinetical = calcKinVib();
+        res = potential + kinetical;
     }
     return res;
 }

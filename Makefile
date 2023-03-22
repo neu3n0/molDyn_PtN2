@@ -27,3 +27,5 @@ removeCalcs:
 
 clean:
 	rm -f *.o md log*
+
+realclean: clean removeCalcs removeVTK

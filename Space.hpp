@@ -21,6 +21,11 @@ public:
 	bool initFromEnergy(std::istream& inp);
 	bool initFromEnergy(const std::string& fname);
 	bool initFromParams(const double E_tr, const double E_rot, const double E_vib, const double alpha);
+	std::vector<double> initFromCoordsAndVel(
+        const std::vector<double>& r1, 
+            const std::vector<double>& r2, 
+                const std::vector<double>& vAbs1, 
+                    const std::vector<double>& vAbs2);
 public:
 	void printConfig() const;
 	void printInit() const;
@@ -56,6 +61,13 @@ public:
 	void saveStruct();
 	double calcRotEn();
 	double calcVibEn();
+	double calcKinVib();
+public:
+	bool saveAvg{false};
+	void saveAvgEn();
+	double avgVibEn{0};
+	double avgRotEn{0};
+	size_t indAvg{0};
 };
 
 void saveInfo(Outer& out, const double E_tr, const double E_rot, const double E_vib,
