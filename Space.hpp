@@ -44,10 +44,10 @@ public:
 public:
 	Cell cells[MAX_CELLS][MAX_CELLS][MAX_CELLS];
 	std::vector<MoleculeN2> molsN2{};
-	bool isZ_periodic{true};
+	bool isZ_periodic{false};
 public:
 	int MDStep();
-	void changeCell(size_t i, size_t j, size_t k, size_t iNew, size_t kNew, size_t jNew, size_t indAt);
+	void changeCell(size_t i, size_t j, size_t k, size_t iNew, size_t kNew, size_t jNew, int indAt);
 	void SetNullMacro();
 	void resetChecker();
 public:
@@ -68,6 +68,9 @@ public:
 	double avgVibEn{0};
 	double avgRotEn{0};
 	size_t indAvg{0};
+
+public:
+	std::vector<double> calcShiftForMol(const MoleculeN2& mol);
 };
 
 void saveInfo(Outer& out, const double E_tr, const double E_rot, const double E_vib,

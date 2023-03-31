@@ -25,19 +25,14 @@ int Atom::coordShift(const double dt, const double* spaceLength, bool isZ_period
     for (size_t i = 0; i < 3; ++i) {
         coord[i] += vel[i] * dt;
         if ((!isZ_periodic && i == 2) && (coord[i] < 0 || coord[i] > spaceLength[i])) continue;
-        if (!atMolN2) {
-            if (coord[i] < 0) coord[i] += spaceLength[i];
-            if (coord[i] > spaceLength[i]) coord[i] -= spaceLength[i];
-        }
-        else {
-            if (coord[i] < 0) coord[i] += spaceLength[i];
-            if (coord[i] > spaceLength[i]) coord[i] -= spaceLength[i];
-        }
+        if (coord[i] < 0) coord[i] += spaceLength[i];
+        if (coord[i] > spaceLength[i]) coord[i] -= spaceLength[i];
         if (atMolN2 != nullptr && i == 2 && ((coord[i] + atMolN2->coord[i]) / 2) >= hMax + 0.1) {
             was = true;
             return 1;
         }
-        if ((coord[i] < 0 || coord[i] > spaceLength[i]) && !atMolN2) {
+        // if ((coord[i] < 0 || coord[i] > spaceLength[i]) && !atMolN2) {
+        if ((coord[i] < 0 || coord[i] > spaceLength[i])) {
             std::cout << i << " " << coord[i] << " " << vel[i] << " " << dt << " " << type << std::endl;
             throw std::runtime_error("Problem with coordShift");
         }
@@ -54,7 +49,7 @@ void Atom::velShift(const double dt) {
 }
 
 double Atom::kinEnergy() {
-    return m * (vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2]) / 2;
+    return m * ((vel[0] + vel2[0]) / 2 * (vel[0] + vel2[0]) / 2 + (vel[1] + vel2[1]) / 2 * (vel[1] + vel2[1]) / 2 + (vel[2] + vel2[2]) / 2 * (vel[2] + vel2[2]) / 2) / 2;
 }
 
 bool Atom::checkCell(const size_t i0, const size_t j0, const size_t k0, size_t& i, size_t& j, size_t& k, const double lengthCell){
@@ -65,22 +60,43 @@ bool Atom::checkCell(const size_t i0, const size_t j0, const size_t k0, size_t& 
     return false;
 }
 
+// void Atom::powerLJ(Atom* atProb, const double* shift) {
+//     double r2 = 0;
+//     for (size_t i = 0; i < 3; ++i) 
+//         r2 += (coord[i] - atProb->coord[i] - shift[i]) * (coord[i] - atProb->coord[i] - shift[i]);
+//     double r = sqrt(r2);
+//     double force = LJ_F(r, r2, type, atProb->type);
+//     double potential = LJ_P(r2, type, atProb->type);
+//     ljEn += potential;
+//     atProb->ljEn += potential;
+
+//     for (size_t i = 0; i < 3; ++i) {
+//         double tmp = (coord[i] - atProb->coord[i] - shift[i]) / r * force;
+//         power[i] += tmp;
+//         atProb->power[i] -= tmp;
+//     }
+// }
+
 void Atom::powerLJ(Atom* atProb, const double* shift) {
+    double dr[3] = {0, 0, 0};
+    for (size_t i = 0; i < 3; ++i) 
+        dr[i] += coord[i] - atProb->coord[i] - shift[i];
     double r2 = 0;
     for (size_t i = 0; i < 3; ++i) 
-        r2 += (coord[i] - atProb->coord[i] - shift[i]) * (coord[i] - atProb->coord[i] - shift[i]);
-    double r = sqrt(r2);
-    double force = LJ_F(r, r2, type, atProb->type);
+        r2 += dr[i] * dr[i];
+    
+    // double force = LJ_F(r, r2, type, atProb->type);
+    double force = LJ_F_div_r(r2, type, atProb->type);
     double potential = LJ_P(r2, type, atProb->type);
     ljEn += potential;
     atProb->ljEn += potential;
 
     for (size_t i = 0; i < 3; ++i) {
-        double tmp = (coord[i] - atProb->coord[i] - shift[i]) / r * force;
+        double tmp = dr[i] * force;
         power[i] += tmp;
         atProb->power[i] -= tmp;
     }
-} 
+}
 
 // double Atom::kinVib(const double* shift) {
 //     double* line = new double[3];
@@ -96,38 +112,40 @@ void Atom::powerLJ(Atom* atProb, const double* shift) {
 //     return m * vRel * vRel;
 // }
 
-double Atom::kinVib() {
-    double* line = new double[3];
+double Atom::kinVib(const std::vector<double>& shift) {
+    double line[3];
     for (size_t i = 0; i < 3; ++i) 
-        line[i] = coord[i] - atMolN2->coord[i];
-    double* velRel = new double[3];
+        line[i] = coord[i] - atMolN2->coord[i] - shift[i];
+    double velRel[3];
     for (size_t i = 0; i < 3; ++i) 
         velRel[i] = (vel[i] + vel2[i]) / 2 - ((vel[i] +  vel2[i]) / 2 + (atMolN2->vel[i] + atMolN2->vel2[i]) / 2) / 2;
 
     double vRel = Utils::scalProd(velRel, line) / sqrt(Utils::scalProd(line, line));
-    delete[] line;
-    delete[] velRel;
     return m * vRel * vRel;
 }
 
 void Atom::powerKX(Atom* atProb, const double* shift) {
     double r = 0;
-    for (size_t i = 0; i < 3; ++i) r += (coord[i] - atProb->coord[i] - shift[i]) * (coord[i] - atProb->coord[i] - shift[i]);
+    double dr[3] = {0, 0, 0};
+    for (size_t i = 0; i < 3; ++i) 
+        dr[i] += coord[i] - atProb->coord[i] - shift[i];
+    for (size_t i = 0; i < 3; ++i) r += dr[i] * dr[i];
     r = sqrt(r);
+
     double force = KX_F(r);
+
     double vib = KX_P(r);
     double rot = calcEnRot(shift);
 
     eVib += vib;
     eRot += rot;
     testVib1 += vib;
-
     atProb->eVib += vib;
     atProb->eRot += rot;
     atProb->testVib1 += vib;
 
     for (size_t i = 0; i < 3; ++i) {
-        double tmp = (coord[i] - atProb->coord[i] - shift[i]) / r * force;
+        double tmp = dr[i] / r * force;
         power[i] += tmp;
         atProb->power[i] -= tmp;
     }
@@ -174,6 +192,13 @@ double LJ_F(const double r, const double r2, const int type1, const int type2) {
     const double r13 = r6 * r6 * r; 
     return 24 * Constants::ljEps[type1][type2] * (2 * Constants::ljSigma12[type1][type2] / r13
         - Constants::ljSigma6[type1][type2] / r7);
+}
+
+double LJ_F_div_r(const double r2, const int type1, const int type2) {
+    const double r6 = r2 * r2 * r2;
+    const double r12 = r6 * r6;
+    return 24 * Constants::ljEps[type1][type2] * (2 * Constants::ljSigma12[type1][type2] / r12
+        - Constants::ljSigma6[type1][type2] / r6) / r2;
 }
 
 double LJ_P(const double r2, const int type1, const int type2) {

@@ -305,7 +305,7 @@ int Space::MDStep() {
     for (size_t i = 0; i < numberCellsX; ++i)
         for (size_t j = 0; j < numberCellsY; ++j)
             for (size_t k = 0; k < numberCellsZ; ++k)
-                for (size_t indAt = 0; indAt < cells[i][j][k].atoms.size(); ++indAt) {
+                for (int indAt = 0; indAt < static_cast<int>(cells[i][j][k].atoms.size()); ++indAt) {
                     turnOff += cells[i][j][k].atoms[indAt]->coordShift(dt, spaceLength, isZ_periodic, hMax);
                     size_t iNew = 0, jNew = 0, kNew = 0;
                     if (cells[i][j][k].atoms[indAt]->checkCell(i, j, k, iNew, jNew, kNew, lengthCell)) {
@@ -344,30 +344,71 @@ int Space::MDStep() {
                                 }
                             }
 
-
+    double kinE = 0;
+    double potPt = 0;
+    double potN2 = 0;
     for (size_t i = 0; i < numberCellsX; ++i) 
         for (size_t j = 0; j < numberCellsY; ++j)
             for (size_t k = 0; k < numberCellsZ; ++k) 
-                for (size_t indAt = 0; indAt < cells[i][j][k].atoms.size(); ++indAt)
+                for (size_t indAt = 0; indAt < cells[i][j][k].atoms.size(); ++indAt) {
                     cells[i][j][k].atoms[indAt]->velShift(dt);
+                    if (!cells[i][j][k].atoms[indAt]->atMolN2) {
+                        kinE += cells[i][j][k].atoms[indAt]->kinEnergy();
+                    }
+                    else {
+                        potN2 += cells[i][j][k].atoms[indAt]->ljEn;
+                    }
+                    potPt += cells[i][j][k].atoms[indAt]->ljEn;
+                }
     
-    
+    double kinN2 = 0;
     for (auto& mol : molsN2) {
-        double kin = mol.atom[0]->kinVib();
+        std::vector<double> shift = calcShiftForMol(mol);
+        double kin = mol.atom[0]->kinVib(shift);
+        double v2 = 0;
+        for (size_t i = 0; i < 3; ++i) {
+            v2 += ((mol.atom[0]->vel[i] + mol.atom[0]->vel2[i]) / 2 + (mol.atom[1]->vel[i] + mol.atom[1]->vel2[i]) / 2) *
+                  ((mol.atom[0]->vel[i] + mol.atom[0]->vel2[i]) / 2 + (mol.atom[1]->vel[i] + mol.atom[1]->vel2[i]) / 2);
+        }
+        kinN2 += MASS_FOR_N * v2;
+        // velRel[i] = (vel[i] + vel2[i]) / 2 - ((vel[i] +  vel2[i]) / 2 + (atMolN2->vel[i] + atMolN2->vel2[i]) / 2) / 2;
         mol.atom[0]->testVib2 += kin;
         mol.atom[1]->testVib2 += kin;
         mol.atom[0]->eVib += kin;
         mol.atom[1]->eVib += kin;
-    }
 
+    }
+    double eee = 0;
+    eee += 2 * molsN2[0].atom[0]->eVib;
+    eee += 2 * molsN2[0].atom[0]->eRot;
+    eee += kinE;
+    eee += potPt / 2;
+    eee += kinN2;
+    std::vector<double> vv = averVel();
+    std::cout << "av_vel: " << vv[0] << ' ' << vv[1]<< ' ' << vv[2] << " en: " << eee << " " << potN2 << std::endl;
+    // std::cout << eee << std::endl;
     if (turnOff) return 1;
     return 0;
 }
 
-void Space::changeCell(size_t i, size_t j, size_t k, size_t iNew, size_t jNew, size_t kNew, size_t indAt) {
+void Space::changeCell(size_t i, size_t j, size_t k, size_t iNew, size_t jNew, size_t kNew, int indAt) {
     cells[iNew][jNew][kNew].atoms.push_back(cells[i][j][k].atoms[indAt]);
-    std::swap(cells[i][j][k].atoms[indAt], cells[i][j][k].atoms[cells[i][j][k].atoms.size() - 1]);
+    if (cells[i][j][k].atoms.size() != 1)
+        std::swap(cells[i][j][k].atoms[indAt], cells[i][j][k].atoms[cells[i][j][k].atoms.size() - 1]);
     cells[i][j][k].atoms.pop_back();
+}
+
+std::vector<double> Space::calcShiftForMol(const MoleculeN2& mol) {
+    std::vector<double> shift(3, 0);
+    int i1 = static_cast<int>(mol.atom[0]->coord[0] / lengthCell);
+    int j1 = static_cast<int>(mol.atom[0]->coord[1] / lengthCell);
+    int i2 = static_cast<int>(mol.atom[1]->coord[0] / lengthCell);
+    int j2 = static_cast<int>(mol.atom[1]->coord[1] / lengthCell);
+    if ((i1 - i2) > 1) shift[0] = spaceLength[0];
+    if ((j1 - j2) > 1) shift[1] = spaceLength[1];
+    if ((i1 - i2) < -1) shift[0] = -spaceLength[0];
+    if ((j1 - j2) < -1) shift[1] = -spaceLength[1];
+    return shift;
 }
 
 void Space::SetNullMacro() {
@@ -644,16 +685,19 @@ std::vector<double> Space::averVel() {
 			for (size_t k = 0; k < numberCellsZ; ++k) {
 				for (size_t l = 0; l < cells[i][j][k].atoms.size(); ++l) {
 					Atom* at = cells[i][j][k].atoms[l];
-					v1 += at->vel[0];
-					v2 += at->vel[1];
-					v3 += at->vel[2];
+                    double m = MASS_FOR_PT;
+                    if (at->atMolN2) m = MASS_FOR_N;
+                    v1 += m * (at->vel[0] + at->vel2[0]) / 2;
+                    v2 += m * (at->vel[1] + at->vel2[1]) / 2;
+                    v3 += m * (at->vel[2] + at->vel2[2]) / 2;
 				}
 			}
 		}
 	}
+    double t = countAtPt * MASS_FOR_PT + countMolN2 * 2 * MASS_FOR_N;
 	std::vector<double> av_vel;
-	av_vel.push_back(v1 / (countAtPt + countMolN2));
-	av_vel.push_back(v2 / (countAtPt + countMolN2));
-	av_vel.push_back(v3 / (countAtPt + countMolN2));
+	av_vel.push_back(v1 / t);
+	av_vel.push_back(v2 / t);
+	av_vel.push_back(v3 / t);
 	return av_vel;
 }
