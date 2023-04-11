@@ -345,20 +345,15 @@ int Space::MDStep() {
                             }
 
     double kinE = 0;
-    double potPt = 0;
-    double potN2 = 0;
+    double ljFULL = 0;
     for (size_t i = 0; i < numberCellsX; ++i) 
         for (size_t j = 0; j < numberCellsY; ++j)
             for (size_t k = 0; k < numberCellsZ; ++k) 
                 for (size_t indAt = 0; indAt < cells[i][j][k].atoms.size(); ++indAt) {
                     cells[i][j][k].atoms[indAt]->velShift(dt);
-                    if (!cells[i][j][k].atoms[indAt]->atMolN2) {
+                    if (!cells[i][j][k].atoms[indAt]->atMolN2)
                         kinE += cells[i][j][k].atoms[indAt]->kinEnergy();
-                    }
-                    else {
-                        potN2 += cells[i][j][k].atoms[indAt]->ljEn;
-                    }
-                    potPt += cells[i][j][k].atoms[indAt]->ljEn;
+                    ljFULL += cells[i][j][k].atoms[indAt]->ljEn;
                 }
     
     double kinN2 = 0;
@@ -372,21 +367,26 @@ int Space::MDStep() {
         }
         kinN2 += MASS_FOR_N * v2;
         // velRel[i] = (vel[i] + vel2[i]) / 2 - ((vel[i] +  vel2[i]) / 2 + (atMolN2->vel[i] + atMolN2->vel2[i]) / 2) / 2;
-        mol.atom[0]->testVib2 += kin;
-        mol.atom[1]->testVib2 += kin;
+        // mol.atom[0]->testVib2 += kin;
+        // mol.atom[1]->testVib2 += kin;
         mol.atom[0]->eVib += kin;
         mol.atom[1]->eVib += kin;
-
     }
+
+
     double eee = 0;
-    eee += 2 * molsN2[0].atom[0]->eVib;
-    eee += 2 * molsN2[0].atom[0]->eRot;
-    eee += kinE;
-    eee += potPt / 2;
+    eee += molsN2[0].atom[0]->eVib;
+    eee += molsN2[0].atom[0]->eRot;
     eee += kinN2;
+
+    eee += kinE;
+    eee += ljFULL / 2;
     std::vector<double> vv = averVel();
-    std::cout << "av_vel: " << vv[0] << ' ' << vv[1]<< ' ' << vv[2] << " en: " << eee << " " << potN2 << std::endl;
-    // std::cout << eee << std::endl;
+    // std::cout << "av_vel: " << vv[0] << ' ' << vv[1]<< ' ' << vv[2] << " en: " << eee << " ljFull: " << ljFULL / 2 << " ljN2: " << molsN2[0].atom[0]->testVib1 + molsN2[0].atom[1]->testVib1 
+    //             << " eVib: " << molsN2[0].atom[0]->eVib << " eRot: " << molsN2[0].atom[0]->eRot << std::endl;
+    std::cout << "eFULL: " << eee << " ljFull: " << ljFULL / 2 << " eTr: " << kinE + kinN2 
+                << " eVib: " << molsN2[0].atom[0]->eVib << " eRot: " << molsN2[0].atom[0]->eRot
+                    << " eTr_Pt: " << kinE << " eTr_N2: " << kinN2 << " ljN2: " << molsN2[0].atom[0]->testVib1 + molsN2[0].atom[1]->testVib1 << std::endl;
     if (turnOff) return 1;
     return 0;
 }

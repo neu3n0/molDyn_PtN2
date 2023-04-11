@@ -91,6 +91,13 @@ void Atom::powerLJ(Atom* atProb, const double* shift) {
     ljEn += potential;
     atProb->ljEn += potential;
 
+    if (atMolN2 || atProb->atMolN2) {
+        testVib1 += potential;
+    }
+    if (atProb->atMolN2) {
+        atProb->testVib1 += potential;
+    }
+
     for (size_t i = 0; i < 3; ++i) {
         double tmp = dr[i] * force;
         power[i] += tmp;
@@ -124,7 +131,7 @@ double Atom::kinVib(const std::vector<double>& shift) {
     return m * vRel * vRel;
 }
 
-void Atom::powerKX(Atom* atProb, const double* shift) {
+void Atom:: powerKX(Atom* atProb, const double* shift) {
     double r = 0;
     double dr[3] = {0, 0, 0};
     for (size_t i = 0; i < 3; ++i) 
@@ -139,10 +146,10 @@ void Atom::powerKX(Atom* atProb, const double* shift) {
 
     eVib += vib;
     eRot += rot;
-    testVib1 += vib;
+    // testVib1 += vib;
     atProb->eVib += vib;
     atProb->eRot += rot;
-    atProb->testVib1 += vib;
+    // atProb->testVib1 += vib;
 
     for (size_t i = 0; i < 3; ++i) {
         double tmp = dr[i] / r * force;
@@ -170,9 +177,9 @@ double Atom::calcEnRot(const double* shift) {
     double e1[3];
     double v[3];
     for (size_t i = 0; i < 3; ++i) {
-        e1[i] = coord[i] - xC[i];
-        if (shift[i] != 0 and std::abs(e1[i]) > 4)
-            e1[i] = coord[i] - xC[i] - shift[i];
+        // e1[i] = coord[i] - xC[i];
+        // if (shift[i] != 0 and std::abs(e1[i]) > 4)
+        e1[i] = coord[i] - xC[i] - shift[i];
         v[i] = (vel[i] + vel2[i]) / 2 - vC[i];
     }
     double I = 2 * m * Utils::scalProd(e1, e1);
