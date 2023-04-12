@@ -16,7 +16,9 @@ int main(const int argc, char* argv[]) {
     std::vector<double> config = Space::getCfg(pars.getCfgFile());
     std::vector<std::vector<double>> PlatinumSurf = Space::getPlatinumSurf(pars.getInpFile());
 
+#ifndef DEBUG_INFO
     #pragma omp parallel for
+#endif
     for (size_t i = 0; i < coord1.size(); ++i) {
         Space* space = new Space();
         space->setConfig(config);
@@ -26,6 +28,9 @@ int main(const int argc, char* argv[]) {
 
         size_t step = 0;
         auto start = std::chrono::steady_clock::now();
+#ifdef DEBUG_INFO
+        std::cout << "conf #" << i << std::endl;
+#endif
         while (!space->MDStep() && step < MAXSTEPS) {
             // if (pars.getOutFile() != "" && step % 100 == 0) space->writeVTK(pars.getOutFile() + "_" + std::to_string(i));
             ++step;

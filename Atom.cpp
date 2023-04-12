@@ -66,6 +66,12 @@ void Atom::powerLJ(Atom* atProb, const double* shift) {
     
     double force = LJ_F_div_r(r2, type, atProb->type);
 
+#ifdef DEBUG_INFO
+    double potential = LJ_P(r2, type, atProb->type);
+    ljEn += potential;
+    atProb->ljEn += potential;
+#endif
+
     for (size_t i = 0; i < 3; ++i) {
         double tmp = dr[i] * force;
         power[i] += tmp;

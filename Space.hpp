@@ -42,6 +42,7 @@ public:
 	Cell cells[MAX_CELLS][MAX_CELLS][MAX_CELLS];
 	std::vector<MoleculeN2> molsN2{};
 	bool isZ_periodic{false};
+
 public:
 	size_t countMolN2{0}, countAtPt{0};
 	double lengthCell{0};
@@ -55,14 +56,15 @@ public:
 	void changeCell(size_t i, size_t j, size_t k, size_t iNew, size_t kNew, size_t jNew, int indAt);
 	void SetNullMacro();
 	void resetChecker();
+
 public:
 	int writeVTK(const std::string& name);
 	inline static int vtkNum{0};
 
-
 public:
 	double temp{0}, p{0}, dt{0};
 	double energy{0}, kinEn{0}, potEn{0}, vibEn{0};
+
 public:
 	double tempr();
 	double rmsVel();
@@ -72,7 +74,6 @@ public:
 	double calcRotEn();
 	double calcVibEn();
 	double calcKinVib();
-
 
 public:
 	std::vector<double> calcShiftForMol(const MoleculeN2& mol);
@@ -99,6 +100,10 @@ public:
 
 	static std::vector<double> getCfg(const std::string& fname);
 	static std::vector<std::vector<double>> getPlatinumSurf(const std::string& fname);
+
+public:
+	void print_avel();
+	void print_energy();
 };
 
 

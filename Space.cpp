@@ -423,6 +423,12 @@ int Space::MDStep() {
                     cells[i][j][k].atoms[indAt]->velShift(dt);
 
 
+
+#ifdef DEBUG_INFO
+    print_avel();
+    print_energy();
+#endif
+
     if (turnOff) return 1;
     return 0;
 }
@@ -817,4 +823,34 @@ std::vector<std::vector<double>> Space::getPlatinumSurf(const std::string& fname
 
     fin.close();
     return platinum;
+}
+
+void Space::print_avel() {
+    std::vector<double> vv = averVel();
+    std::cout << "av_vel: " << vv[0] << ' ' << vv[1]<< ' ' << vv[2] << std::endl;
+}
+
+void Space::print_energy() {
+    double lj_energy = 0;
+    double kin_en_PT = 0;
+    for (size_t i = 0; i < numberCellsX; ++i) {
+        for (size_t j = 0; j < numberCellsY; ++j)
+            for (size_t k = 0; k < numberCellsZ; ++k)
+                for (size_t indAt = 0; indAt < cells[i][j][k].atoms.size(); ++indAt) {
+                    lj_energy += cells[i][j][k].atoms[indAt]->ljEn;
+                    if (!cells[i][j][k].atoms[indAt]->atMolN2)
+                        kin_en_PT += cells[i][j][k].atoms[indAt]->kinEnergy();
+                }
+    }
+
+    calcEnergiesForN2();
+    double kin_en_N2 = molsN2[0].eTr;
+    double vib_en_N2 = molsN2[0].eVib;
+    double rot_en_N2 = molsN2[0].eRot;
+    lj_energy /= 2;
+    double full_en = lj_energy + kin_en_PT + kin_en_N2 + vib_en_N2 + rot_en_N2;
+    std::cout << "full_en = " << full_en << " lj_energy = " << lj_energy
+              << " kin_en_PT = " << kin_en_PT << " kin_en_N2 = " << kin_en_N2
+              << " vib_en_N2 = " << vib_en_N2 << " rot_en_N2 = " << rot_en_N2 << std::endl;
+
 }
