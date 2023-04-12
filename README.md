@@ -19,3 +19,5 @@ Molecular dynamic step:
     Константа Больцмана KB = Дж/К * 10^(-20)  
   
     Энергия на входе в Кельвинах -> Надо умножать на константу Больцмана  
+
+# valgrind --track-origins=yes --leak-check=full ./md --cfg input/config.txt --inp input/initAtoms.inp --cfginp input/inp.txt 2> 1
