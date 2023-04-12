@@ -32,6 +32,7 @@ public:
             const std::vector<double>& r2, 
                 const std::vector<double>& vAbs1, 
                     const std::vector<double>& vAbs2);
+	bool prepareMolecule(const double E_tr, const double E_rot, const double E_vib, const double alpha);
 
 	void printInfo() const;
 	void printMol() const;

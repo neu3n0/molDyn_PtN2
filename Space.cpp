@@ -272,6 +272,115 @@ bool Space::initFromParams(const double E_tr, const double E_rot, const double E
     return true; 
 }
 
+bool Space::prepareMolecule(const double E_tr, const double E_rot, const double E_vib, const double alpha) {
+    //coord
+    std::vector<double> e1(3);
+    std::vector<double> rC(3);
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(1.1, 34.18);    // need change
+    rC[0] = dis(gen);
+    rC[1] = dis(gen);
+    rC[2] = startHeight;
+    std::vector<double> r1(3);
+    std::vector<double> r2(3);
+    double r_k = std::abs(Constants::bondR0 - sqrt(E_vib * KB * 2 / Constants::bondK));
+    createVector(r1, r_k / 2);
+    for (size_t i = 0; i < 3; ++i) {
+        e1[i] = r1[i];
+        r2[i] = -r1[i];
+        r1[i] += rC[i];
+        r2[i] += rC[i];
+    }
+    
+    double modV = sqrt(E_tr * KB / MASS_FOR_N);     // sqrt(K * Дж/K * 10^(20) / кг * 10^(20))  = sqrt(м^2 / c^2) = (A / t_)  
+    double modW = 2.0 / r_k * sqrt(E_rot * KB / MASS_FOR_N);   // 1 / A * sqrt(К * Дж / K  / кг * 10^(20))
+
+    // vel 
+    std::vector<double> vC(3);
+    createVelAbs(vC, modV, (180 - alpha) * M_PI / 180);
+    std::vector<double> w_dir(3);
+    do {
+        std::vector<double> randTmp(3);
+        createVector(randTmp, 1);
+        w_dir = Utils::vecProd(e1, randTmp);
+    } while(!renorm(w_dir));
+    
+    for (auto& x : w_dir) x *= modW;
+    std::vector<double> v1(3);
+    v1 = Utils::vecProd(w_dir, e1);
+    std::vector<double> v2(v1);
+    for (auto& x : v2) x = -x;
+    std::vector<double> vAbs1(3);
+    std::vector<double> vAbs2(3);
+    for (size_t i = 0; i < 3; ++i) {
+        vAbs1[i] = vC[i] + v1[i];
+        vAbs2[i] = vC[i] + v2[i];
+    }
+
+    double rrr = 0;
+    for (size_t i = 0; i < 3; ++i) rrr += (r1[i] - r2[i]) * (r1[i] - r2[i]);
+    rrr = sqrt(rrr);
+    double force = KX_F(rrr);
+    double power[3] = {0, 0, 0};
+    for (size_t i = 0; i < 3; ++i)
+        power[i] += (r1[i] - r2[i]) / rrr * force;
+
+    MoleculeN2 mol;
+    int i = static_cast<int>(r1[0] / lengthCell);
+    int j = static_cast<int>(r1[1] / lengthCell);
+    int k = static_cast<int>(r1[2] / lengthCell);
+    if (i >= 0 && j >= 0 && k >= 0 && i < static_cast<int>(numberCellsX) && j < static_cast<int>(numberCellsY) && k < static_cast<int>(numberCellsZ)) {
+        Atom* atom = new Atom(r1, vAbs1, MASS_FOR_N, 0);
+        for (size_t ii = 0; ii < 3; ++ii) {
+            atom->vel2[ii] = atom->vel[ii] + power[ii] * (-dt) / 2 / MASS_FOR_N;
+            atom->vel[ii] += power[ii] * dt / 2 / MASS_FOR_N;
+        }
+        cells[i][j][k].atoms.push_back(atom);
+        mol.atom[0] = atom;
+    }
+    else {
+        std::cout << "ind: " << i << " " << j << " " << k << std::endl;
+        throw std::runtime_error("Incorrect init data for N2");
+    }
+    i = static_cast<int>(r2[0] / lengthCell);
+    j = static_cast<int>(r2[1] / lengthCell);
+    k = static_cast<int>(r2[2] / lengthCell);
+    if (i >= 0 && j >= 0 && k >= 0 && i < static_cast<int>(numberCellsX) && j < static_cast<int>(numberCellsY) && k < static_cast<int>(numberCellsZ)) {
+        Atom* atom = new Atom(r2, vAbs2, MASS_FOR_N, 0);
+        for (size_t ii = 0; ii < 3; ++ii) {
+            atom->vel2[ii] = atom->vel[ii] - power[ii] * (-dt) / 2 / MASS_FOR_N;
+            atom->vel[ii] -= power[ii] * dt / 2 / MASS_FOR_N;
+        }
+        cells[i][j][k].atoms.push_back(atom);
+        mol.atom[1] = atom;
+    }
+    else {
+        std::cout << "ind: " << i << " " << j << " " << k << std::endl;
+        throw std::runtime_error("Incorrect init data for N2");
+    }
+    mol.atom[0]->atMolN2 = mol.atom[1];
+    mol.atom[1]->atMolN2 = mol.atom[0];
+    molsN2.push_back(mol);
+
+    double eTrr = 0;
+    for (size_t in = 0; in < 3; ++in)
+        eTrr += pow((molsN2[0].atom[0]->vel[in] + molsN2[0].atom[1]->vel[in]) / 2, 2);
+    eTrr *= MASS_FOR_N;
+    double ang = std::abs(atan2((molsN2[0].atom[0]->vel[2] + molsN2[0].atom[1]->vel[2]) / 2, sqrt(pow((molsN2[0].atom[0]->vel[1] + molsN2[0].atom[1]->vel[1]) / 2, 2) + pow((molsN2[0].atom[0]->vel[0] + molsN2[0].atom[1]->vel[0]) / 2, 2))) / M_PI * 180);
+    ang = 90 - ang;
+    if (std::abs(calcVibEn() / KB - E_vib) > 1e-1 || std::abs(calcRotEn() / KB - E_rot) > 1e-1 || std::abs(eTrr / KB - E_tr) > 1e-1 || ang - alpha > 1e-1) {
+        std::cerr << "bad initFromParams\n";
+        std::cerr << "eVib = " << calcVibEn() / KB << std::endl;
+        std::cerr << "eRot = " << calcRotEn() / KB << std::endl;
+        std::cerr << "eTr = " << eTrr / KB << std::endl;
+        std::cerr << "ang = " << ang << std::endl;
+        return false;
+    }
+
+    return true; 
+}
+
 std::vector<double> Space::initFromCoordsAndVel(
         const std::vector<double>& r1, 
             const std::vector<double>& r2, 
