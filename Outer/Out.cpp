@@ -16,6 +16,11 @@ Outer::Outer(const std::string& out) {
     Out.open("output/calcs/" + out, std::ios_base::app);
 }
 
+Outer::Outer(const std::string& out, bool flag) {
+    if (!flag) return;
+    Out.open("input/" + out, std::ios_base::app);
+}
+
 Outer::~Outer() {
     if (fout.is_open()) fout.close();
     if (Kout.is_open()) Kout.close();

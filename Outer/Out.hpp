@@ -9,6 +9,7 @@ public:
         const std::string& fullen, const std::string& rmsVel, const std::string& avel,
             const std::string& temp);
     Outer(const std::string& Out);
+    Outer(const std::string& Out, bool flag);
     ~Outer();
 public:
     std::ofstream fout{};
