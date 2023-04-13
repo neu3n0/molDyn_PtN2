@@ -28,4 +28,5 @@ cd $folder_name
 mv ../../output/calcs/* .
 mv ../../input/confs.txt .
 mv ../../log .
+cp ../../input/configInp.txt .
 cd ../..
