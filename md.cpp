@@ -16,6 +16,7 @@ int main(const int argc, char* argv[]) {
     std::vector<double> config = Space::getCfg(pars.getCfgFile());
     std::vector<std::vector<double>> PlatinumSurf = Space::getPlatinumSurf(pars.getInpFile());
 
+    // omp_set_num_threads(omp_get_max_threads() - 1);
 #ifndef DEBUG_INFO
     #pragma omp parallel for
 #endif
@@ -32,7 +33,7 @@ int main(const int argc, char* argv[]) {
         std::cout << "conf #" << i << std::endl;
 #endif
         while (!space->MDStep() && step < MAXSTEPS) {
-            if (pars.getOutFile() != "" && step % 100 == 0) space->writeVTK(pars.getOutFile() + "_" + std::to_string(i));
+            // if (pars.getOutFile() != "" && step % 100 == 0) space->writeVTK(pars.getOutFile() + "_" + std::to_string(i));
             ++step;
         }
         double timeT = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count()) / 1000;
