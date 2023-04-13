@@ -37,4 +37,5 @@
 ######
 .vscode
 md
+prepare_mols_info
 test.cpp
