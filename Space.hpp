@@ -84,7 +84,7 @@ public:
 	double avgRotEn{0};
 	double avgTrEn{0};
 	size_t indAvg{0};
-	inline static size_t period = 14;
+	inline static size_t period = 29;
 	void calcAvgEn();
 	double eTr{0};
 	std::vector<double> vMol{};
