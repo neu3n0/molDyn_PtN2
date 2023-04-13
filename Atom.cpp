@@ -70,6 +70,10 @@ void Atom::powerLJ(Atom* atProb, const double* shift) {
     double potential = LJ_P(r2, type, atProb->type);
     ljEn += potential;
     atProb->ljEn += potential;
+    if (atMolN2 || atProb->atMolN2) {
+        ljEn_Pt_N2 += potential;
+        atProb->ljEn_Pt_N2 += potential;
+    }
 #endif
 
     for (size_t i = 0; i < 3; ++i) {

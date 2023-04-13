@@ -431,14 +431,11 @@ std::vector<double> Space::initFromCoordsAndVel(
     mol.atom[1]->atMolN2 = mol.atom[0];
     molsN2.push_back(mol);
 
-    double eTrr = 0;
-    for (size_t in = 0; in < 3; ++in)
-        eTrr += pow((molsN2[0].atom[0]->vel[in] + molsN2[0].atom[1]->vel[in]) / 2, 2);
-    eTrr *= MASS_FOR_N;
     double ang = std::abs(atan2((molsN2[0].atom[0]->vel[2] + molsN2[0].atom[1]->vel[2]) / 2, sqrt(pow((molsN2[0].atom[0]->vel[1] + molsN2[0].atom[1]->vel[1]) / 2, 2) + pow((molsN2[0].atom[0]->vel[0] + molsN2[0].atom[1]->vel[0]) / 2, 2))) / M_PI * 180);
     ang = 90 - ang;
 
-    return {eTrr / KB, calcRotEn() / KB, calcVibEn() / KB, ang}; 
+    calcEnergiesForN2();
+    return {molsN2[0].eTr / KB, molsN2[0].eRot / KB, molsN2[0].eVib / KB, ang};
 }
 
 
@@ -574,6 +571,7 @@ void Space::SetNullMacro() {
                     for (size_t ind = 0; ind < 3; ++ind) 
                         cells[i][j][k].atoms[indAt]->power[ind] = 0;
                     cells[i][j][k].atoms[indAt]->ljEn = 0;
+                    cells[i][j][k].atoms[indAt]->ljEn_Pt_N2 = 0;
                 }
 
     for (auto& mol : molsN2) {
@@ -952,6 +950,12 @@ void Space::print_energy() {
                 }
     }
 
+    double lj_en_pt_n2 = 0;
+    for (auto& atom : molsN2) {
+        lj_en_pt_n2 += atom.atom[0]->ljEn_Pt_N2;
+        lj_en_pt_n2 += atom.atom[1]->ljEn_Pt_N2;
+    }
+
     calcEnergiesForN2();
     double kin_en_N2 = molsN2[0].eTr;
     double vib_en_N2 = molsN2[0].eVib;
@@ -960,6 +964,6 @@ void Space::print_energy() {
     double full_en = lj_energy + kin_en_PT + kin_en_N2 + vib_en_N2 + rot_en_N2;
     std::cout << "full_en = " << full_en << " lj_energy = " << lj_energy
               << " kin_en_PT = " << kin_en_PT << " kin_en_N2 = " << kin_en_N2
-              << " vib_en_N2 = " << vib_en_N2 << " rot_en_N2 = " << rot_en_N2 << std::endl;
+              << " vib_en_N2 = " << vib_en_N2 << " rot_en_N2 = " << rot_en_N2 << " lj_en_pt_n2 = " << lj_en_pt_n2 << " lj_en_pt_pt = "  << (lj_energy - lj_en_pt_n2) << std::endl;
 
 }

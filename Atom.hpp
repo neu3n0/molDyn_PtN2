@@ -41,6 +41,7 @@ public:
     Atom* atMolN2{nullptr};
     int type{-1};
     double ljEn{0};
+    double ljEn_Pt_N2{0};
 };
 
 class MoleculeN2 {

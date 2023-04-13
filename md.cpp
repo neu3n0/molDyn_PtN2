@@ -16,9 +16,9 @@ int main(const int argc, char* argv[]) {
     std::vector<double> config = Space::getCfg(pars.getCfgFile());
     std::vector<std::vector<double>> PlatinumSurf = Space::getPlatinumSurf(pars.getInpFile());
 
-    // omp_set_num_threads(omp_get_max_threads() - 1);
+    omp_set_num_threads(omp_get_max_threads());
 #ifndef DEBUG_INFO
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(dynamic)
 #endif
     for (size_t i = 0; i < coord1.size(); ++i) {
         Space* space = new Space();
@@ -38,6 +38,7 @@ int main(const int argc, char* argv[]) {
         }
         double timeT = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count()) / 1000;
         space->saveAndStepsForAvg();
+        #pragma omp critical
         Space::saveInfo(outT, outS, i, macro[0], macro[1], macro[2], macro[3], space->vMol, space->eTr, space->avgVibEn, space->avgRotEn, 1, timeT, step, startInf, step >= MAXSTEPS ? true : false);
 
         delete space;
