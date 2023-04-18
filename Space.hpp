@@ -105,6 +105,7 @@ public:
 public:
 	void print_avel();
 	void print_energy();
+	void print_temp_wall();
 };
 
 

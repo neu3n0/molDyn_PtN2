@@ -533,6 +533,7 @@ int Space::MDStep() {
 #ifdef DEBUG_INFO
     print_avel();
     print_energy();
+    print_temp_wall();
 #endif
 
     if (turnOff) return 1;
@@ -966,4 +967,26 @@ void Space::print_energy() {
               << " kin_en_PT = " << kin_en_PT << " kin_en_N2 = " << kin_en_N2
               << " vib_en_N2 = " << vib_en_N2 << " rot_en_N2 = " << rot_en_N2 << " lj_en_pt_n2 = " << lj_en_pt_n2 << " lj_en_pt_pt = "  << (lj_energy - lj_en_pt_n2) << std::endl;
 
+}
+
+void Space::print_temp_wall() {
+	double mV2 = 0;
+	double a = 0;
+	double res = 0;
+	for (size_t i = 0; i < numberCellsX; ++i) {
+		for (size_t j = 0; j < numberCellsY; ++j) {
+			for (size_t k = 0; k < numberCellsZ; ++k) {
+				for (size_t l = 0; l < cells[i][j][k].atoms.size(); ++l) {
+					Atom* at = cells[i][j][k].atoms[l];
+                    if (!at->atMolN2) {
+                        a = at->m * (pow(at->vel[0], 2) + pow(at->vel[1], 2) + pow(at->vel[2], 2));
+                        mV2 += a;
+                    }
+				}
+			}
+		}
+	}
+
+    res = mV2 / (countAtPt * (3 * KB));
+	std::cout << "temp: " << res << std::endl;
 }
