@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# Copyright (c) 2022 Insilico Medicine
-
 if [ -z $1 ] 
 then
     echo "add number of conformations"
