@@ -3,7 +3,7 @@
 #include <chrono>
 #include <omp.h>
 
-const size_t MAXSTEPS = 200000;
+const size_t MAXSTEPS = 300000;
 
 int main(const int argc, char* argv[]) {
     Parser pars(argc, argv);
